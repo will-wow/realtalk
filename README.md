@@ -1,14 +1,7 @@
 webtalk
 =====
-Character-by-character chat
+Work in progress:
+Record-less, character-by-character chat
 
-Plan:
-----
-One room for all pending users
-send chat request by username (these can stack, and expire in 30 secs)
-if accepted, create room by id of requestor
-add requested person
-remove both from pending list
-relay chars
-on disconnect, ask other user if they want to go back to the lobby
-
+This node.js application will allow two users to chat with each other in real time, like in the old Unix application, Talk.
+It is also built to be record-less; the server simply routes the characters in real time, never writes anything to disk, and keeps as little in memory as possible. This both makes the application more secure and the chats more spontaneous, and saves processing power.
