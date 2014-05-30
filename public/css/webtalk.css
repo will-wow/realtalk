@@ -39,6 +39,16 @@ body {
     height: 90%;
     resize: none;
     font-family: sans-serif;
+    background: white;
+    border: 1px solid black;
+}
+
+.chatbubble {
+    margin: 0 auto;
+    width: 95%;
+    background: #B5AFDE;
+    border: 1px solid #533CE8;
+    border-radius: 25px;
 }
 
 footer input{

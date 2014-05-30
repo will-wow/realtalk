@@ -1,51 +1,78 @@
-function getChar(char) {
-  if (char.back) {
-    // backspace
+(function () {
+  // Create 
+  var lastChat = {
+    'me': new Date(),
+    'other': new Date()
+  };
+  
+  function getChar(char) {
+    if (char.back) {
+      // backspace
+    }
+    else if (char.enter) {
+      // enter
+    }
+    else if (char.next) {
+      // add a char
+    }
   }
-  else if (char.enter) {
-    // enter
+  
+  function sendChar(event) {
+    var data = [];
+    
+    if (event.which() === 8) {
+      data['back'] = true;
+    }
+    else if (event.which() === 13) {
+      data['enter'] = true;
+    }
+    else {
+      data['char'] = event.which();
+    }
+    
+    return data;
   }
-  else if (char.next) {
-    // add a char
+  
+  // Generate a new chat bubble
+  function newBubble() {
+    
   }
-}
-
-function sendChar(event) {
+  
+  // set up an io socket
+  var socket = io.connect();
   var data = [];
   
-  if (event.which() === 8) {
-    data[back] = true;
-  }
-  else if (event.which() === 13) {
-    data[enter] = true;
-  }
-  else {
-    data[char] = event.which();
-  }
-  
-  return data;
-}
-
-// set up an io socket
-var socket = io.connect();
-var data = [];
-
-$(document).ready(function() {
-  // display a new received char
-  $('textarea').keyPress(function (event) {
+  $(document).ready(function() {
+    // User type character
+    $(document).
+    keypress(function (event) {
+      // Write character
+      
+      
+      // Send character
       var next = {
-        "next": event.which()
+        "next": event.which
       };
       socket.emit('char', next);
       console.log(next);
+    }).
+    // User typed backspace
+    keydown(function (event) {
+      if (event.which === 8) {
+        socket.emit('back');
+        console.log('back');
+      }
+    });
+    
+    // Receive character
+    socket.on('char', function (char) {
+      $('#other').val($('#other').val() + String.fromCharCode(char.next));
+    });
+    // Receive backspace
+    socket.on('back', function () {
+      var text = $('#other').val();
+      $('#other').val(text.substring(0, text.length - 1));
+    });
+    
   });
-  
-  
-  socket.on('char', function (char) {
-    // build a div with the message
-    var newElement = $('<div></div>').text(char.next);
-    // add it to the message list
-    $('#messages').append(newElement);
-  });
-  
 });
