@@ -5,74 +5,86 @@
     'other': new Date()
   };
   
-  function getChar(char) {
-    if (char.back) {
-      // backspace
-    }
-    else if (char.enter) {
-      // enter
-    }
-    else if (char.next) {
-      // add a char
-    }
+  ////////////////////////////
+  //  Typing functions
+  ////////////////////////////
+  
+  // Add a character to a box
+  function writeChar(id, char) {
+    const MAX_LENGTH = 50;
+    var textLength;
+    
+    // Get current text
+    var text = $(id).val();
+    // Append new character
+    text = text + String.fromCharCode(char);
+    // cut to MAX LENGTH
+    textLength = text.length;
+    if (textLength > MAX_LENGTH)
+      text = text.substring(textLength-MAX_LENGTH, textLength);
+    
+    // Set new text
+    $(id).val(text);
   }
   
-  function sendChar(event) {
-    var data = [];
-    
-    if (event.which() === 8) {
-      data['back'] = true;
-    }
-    else if (event.which() === 13) {
-      data['enter'] = true;
-    }
-    else {
-      data['char'] = event.which();
-    }
-    
-    return data;
+  // empty a box
+  function emptyBox(id) {
+    $(id).val('');
   }
   
-  // Generate a new chat bubble
-  function newBubble() {
-    
+  // Remove a character from a box
+  function removeChar(id) {
+    var text = $(id).val();
+    $(id).val(text.substring(0, text.length - 1));
   }
   
-  // set up an io socket
-  var socket = io.connect();
-  var data = [];
+  ///////
+  //  Other functions
+  //////
+  
+  // Decide what to do with a character
+  function decideChar(id, char) {
+    // Character is ENTER
+    if (char === 13)
+      emptyBox(id);
+    else
+      writeChar(id, char);
+  }
+  
+  ////////////////////////////
+  //  Main
+  ////////////////////////////
   
   $(document).ready(function() {
-    // User type character
+    // set up an io socket
+    var socket = io.connect();
+    
+    // User types character
     $(document).
     keypress(function (event) {
       // Write character
-      
-      
+      decideChar('#me',event.which);
       // Send character
-      var next = {
-        "next": event.which
-      };
-      socket.emit('char', next);
-      console.log(next);
+      socket.emit('char', {"next": event.which});
     }).
     // User typed backspace
     keydown(function (event) {
       if (event.which === 8) {
+        // Remove character
+        removeChar('#me');
+        // Send a remove request
         socket.emit('back');
-        console.log('back');
       }
     });
     
     // Receive character
     socket.on('char', function (char) {
-      $('#other').val($('#other').val() + String.fromCharCode(char.next));
+      decideChar('#other',char.next);
     });
     // Receive backspace
     socket.on('back', function () {
-      var text = $('#other').val();
-      $('#other').val(text.substring(0, text.length - 1));
+      removeChar('#other');
     });
     
   });
-});
+})();

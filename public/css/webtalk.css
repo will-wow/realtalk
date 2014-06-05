@@ -35,8 +35,8 @@ body {
     text-transform: capitalize;
 }
 .chatbox {
+    position: relative;
     width: 100%;
-    height: 90%;
     resize: none;
     font-family: sans-serif;
     background: white;
