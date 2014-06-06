@@ -1,33 +1,18 @@
-html {height: 100%;}
+html {
+  height: 100%;
+  width: 100%;
+}
 body {
     height: 100%;
+    width: 100%;
     background-color: #f4f4f7;
     font-family: sans-serif;
 }
 
-.outer-container {
-    height: 100%;
-    width: 80%;
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: #ebebf0;
-}
-
-.container{
-    height: 100%;
-}
-
-.chat-container-outer{
-    width: 50%;
-    height: 90%;
-    padding-top: 10px;
-    display: inline-block;
-    text-align: center;
-}
-.chat-contianer-inner {
-    width: 90%;
-    height: 100%;
-    margin: 0 auto;
+.section {
+  height: 100%;
+  width: 30%;
+  display:inline-block;
 }
 
 .chathead {
@@ -41,14 +26,6 @@ body {
     font-family: sans-serif;
     background: white;
     border: 1px solid black;
-}
-
-.chatbubble {
-    margin: 0 auto;
-    width: 95%;
-    background: #B5AFDE;
-    border: 1px solid #533CE8;
-    border-radius: 25px;
 }
 
 footer input{

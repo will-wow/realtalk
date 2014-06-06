@@ -5,7 +5,6 @@ var express = require('express'),
     path = require('path'),
     login = require('./routes/login'),
     chat = require('./routes/chat'),
-    chooser = require('./routes/chooser'),
     messages = require('./lib/messages'),
     cookieParser = express.cookieParser('your secret sauce'),
     sessionStore = new connect.middleware.session.MemoryStore(),
@@ -35,7 +34,6 @@ if ('development' == app.get('env')) {
 
 app.get('/',login.form);
 app.post('/',login.submit);
-app.get('/chooser',chooser.form);
 app.get('/chat',chat.app);
 
 var server = http.createServer(app).listen(app.get('port'), function(){

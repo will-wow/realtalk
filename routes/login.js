@@ -11,7 +11,7 @@ exports.submit = function(req, res){
   if (users.addUser(username)) {
     // If successful, move to chat chooser
     req.session.user = username;
-    res.redirect('/chooser');
+    res.redirect('/chat');
   }
   else {
     // If not successful, pass back "name taken"
