@@ -27,11 +27,11 @@
         <input type="button" id="ignore" value="Ignore"/>\
       </form>');
     
-    ringer$.child('#pickup').click(function () {
+    ringer$.find('#pickup').click(function () {
       socket.emit('pickup', name);
       ringer$.remove();
     });
-    ringer$.child('#unavailable').click(function () {
+    ringer$.find('#unavailable').click(function () {
       socket.emit('unavailable', name);
       ringer$.remove();
     });
@@ -58,17 +58,22 @@
     var users$ = $('<div>');
     
     // Loop through users array and add each one to DOM
-    for (var i=0; i < users.length; i++) {
-      // set up the click handler for the user
-      var clickHandler = userClickHandler(users[i]);
-      // build the user <p>, with the click handler
-      var user$ = $('<p>' + users[i] + '</p>')
-                  .click(clickHandler);
-      // append to the user object
-      users$.append(user$);
+    for (var user in users) {
+      if(users.hasOwnProperty(user)){
+        // set up the click handler for the user
+        var clickHandler = userClickHandler(user);
+        // build the user <p>, with the click handler
+        var user$ = $('<p>' + user + '</p>')
+                    .click(clickHandler);
+        // append to the user object
+        users$.append(user$);
+      }
     }
     // append users to the DOM
     $('#users').append(users$);
+  }
+  function emptyEvents() {
+    $('#events').empty();
   }
   
   ////////////////////////////
@@ -120,51 +125,51 @@
     // Receive userlist
     socket.on('userlist', function (userArray) {
       // save userarray
-      users = JSON.parse(userArray).slice();
+      users = JSON.parse(userArray);
       // populate the userlist
       populateList();
     });
     // Add a user to the list
     socket.on('userIn', function (user) {
-      if (users.indexOf(user) === -1) {
-        users.push(user);
-        populateList();
-      }
+      users[user] = true;
+      populateList();
     });
     // Remove a user from the list
     socket.on('userOut', function (user) {
-      var userIndex = users.indexOf(user);
-      if (userIndex !== -1) {
-        users.pop(userIndex);
-        populateList();
-      }
+      delete users[user];
+      populateList();
     });
   }
   function addChooserHandlers() {
     //ring
     socket.on('ring', function (user) {
+      console.log('ring');
+      emptyEvents();
       $('#events').append(buildRing(user));
     });
     //unavailable
     socket.on('unavailable', function (user) {
-      $('#events').child().remove();
+      emptyEvents();
       $('#events').showCenteredMessage(user + ' was unavailable.');
     });
     //startchat
     socket.on('startchat', function (user) {
       var chat$ = $('#chat');
+      emptyEvents();
+      chattingWith = user;
       // set other username
-      chat$.find('#other').val(user);
+      chat$.find('#head-other').text(user);
       // show chat box
       chat$.fadeIn('fast');
     });
     //endchat
     socket.on('endchat', function (user) {
       var chat$ = $('#chat');
+      chattingWith = '';
       // show chat box
       chat$.fadeOut('fast', function () {
         // clear other username
-        chat$.find('#other').val('');
+        chat$.find('#head-other').text('');
       });
     });
   }
@@ -177,6 +182,8 @@
       decideChar('#me',event.which);
       // Send character
       socket.emit('char', {"next": event.which});
+      
+      event.preventDefault();
     }).
     // User typed backspace
     keydown(function (event) {
@@ -186,6 +193,8 @@
         removeChar('#me');
         // Send a remove request
         socket.emit('back');
+        
+        event.preventDefault();
       }
     });
     
