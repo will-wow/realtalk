@@ -55,7 +55,7 @@
     $('#users').empty();
     
     // set up empty jQuery object to hold users
-    var users$ = $('<div>');
+    var users$ = $('<div><h3>Users Online</h3>');
     
     // Loop through users array and add each one to DOM
     for (var user in users) {
@@ -224,6 +224,12 @@
   $(document).ready(function() {
     // set up an io socket & connect
     socket = io.connect('');
+    
+    socket.on('err',function (msg) {
+      $('#events').showCenteredMessage(msg, {callback: function () {
+        window.location.replace('/');
+      }});
+    });
     
     addUserHandlers();
     addChooserHandlers();

@@ -13,6 +13,8 @@ body {
   height: 100%;
   width: 30%;
   display:inline-block;
+  vertical-align: top;
+  background-color: #ebebf0;
 }
 
 .chathead {
@@ -28,8 +30,7 @@ body {
     border: 1px solid black;
 }
 
-footer input{
-    width: 100%;
+.quit{;
     background-color: #DB8181;
     padding:5px;
     border: 1px solid #666;
