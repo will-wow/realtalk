@@ -118,6 +118,11 @@
       writeChar(id, char);
   }
   
+  function clearChat() {
+    emptyBox('#other');
+    emptyBox('#me');
+  }
+  
   ////////////////////////////
   //  Event Handler Wrappers
   ////////////////////////////
@@ -156,6 +161,7 @@
     socket.on('startchat', function (user) {
       var chat$ = $('#chat');
       emptyEvents();
+      clearChat();
       chattingWith = user;
       // set other username
       chat$.find('#head-other').text(user);
@@ -169,7 +175,11 @@
       // show chat box
       chat$.fadeOut('fast', function () {
         // clear other username
-        chat$.find('#head-other').text('');
+        $('#events').showCenteredMessage(
+          user + ' has left the chat.', function () {
+            chat$.find('#head-other').text('');
+            clearChat();
+        });
       });
     });
   }
