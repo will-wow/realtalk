@@ -80,7 +80,24 @@
   //  Chat Functions
   ////////////////////////////
   
-  // Add a character to a box
+  /**
+   * Empty a chat box
+   */
+  function emptyBox(id) {
+    $(id).val('');
+  }
+  
+  /**
+   * Clear the chat boxes
+   */
+  function clearChat() {
+    emptyBox('#other');
+    emptyBox('#me');
+  }
+  
+  /**
+   * Add a character to a box
+   */
   function writeChar(id, char) {
     const MAX_LENGTH = 50;
     var textLength;
@@ -98,29 +115,45 @@
     $(id).val(text);
   }
   
-  // empty a box
-  function emptyBox(id) {
-    $(id).val('');
-  }
-  
   // Remove a character from a box
   function removeChar(id) {
     var text = $(id).val();
     $(id).val(text.substring(0, text.length - 1));
   }
   
-  // Decide what to do with a character
-  function decideChar(id, char) {
-    // Character is ENTER
-    if (char === 13)
-      emptyBox(id);
-    else
-      writeChar(id, char);
-  }
-  
-  function clearChat() {
-    emptyBox('#other');
-    emptyBox('#me');
+  function handleKeys(e) {
+    var key = e.which,
+        id = '#me';
+    
+    // Backspace works fine as keydown outside Firefox
+    if (e.type === "keydown") {
+      // Backspace
+      if (key === 8) {
+        //if (!($.browser.mozilla)) {
+          removeChar(id);
+          socket.emit('back');
+        //}
+        event.preventDefault();
+      }
+    }
+    // All other events are keypress
+    else if (e.type === "keypress") {
+      // Backspace repeats as keypress in Firefox
+      if (key === 8) {
+        removeChar(id);
+        socket.emit('back');
+      }
+      // Send ENTER
+      else if (key === 13) {
+        emptyBox(id);
+        socket.emit('clear');
+      }
+      // Send Characters
+      else if (32 <= key && key <= 126) {
+        writeChar(id, key);
+        socket.emit('char', key);
+      }
+    }
   }
   
   ////////////////////////////
@@ -186,37 +219,24 @@
   function addChatHandlers() {
     // User types character
     $(document).
-    keypress(function (event) {
-      if (!(chattingWith)) return;
-      // Write character
-      decideChar('#me',event.which);
-      // Send character
-      socket.emit('char', {"next": event.which});
-      
-      event.preventDefault();
-    }).
+    keypress(handleKeys).
     // User typed backspace
-    keydown(function (event) {
-      if (!(chattingWith)) return;
-      if (event.which === 8) {
-        // Remove character
-        removeChar('#me');
-        // Send a remove request
-        socket.emit('back');
-        
-        event.preventDefault();
-      }
-    });
+    keydown(handleKeys);
     
     // Receive character
     socket.on('char', function (char) {
       if (!(chattingWith)) return;
-      decideChar('#other',char.next);
+      writeChar('#other', char);
     });
     // Receive backspace
     socket.on('back', function () {
       if (!(chattingWith)) return;
       removeChar('#other');
+    });
+    // Receive clearbox
+    socket.on('clear', function () {
+      if (!(chattingWith)) return;
+      emptyBox('#other');
     });
   }
   
