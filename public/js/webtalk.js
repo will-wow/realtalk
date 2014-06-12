@@ -1,42 +1,100 @@
-(function () {
+(function ($) {
   ////////////////////////////
   //  Public Variables
   ////////////////////////////
+  // "use strict";
   // Holds reference to socket
   var socket,
   // Holds all current users
-      users = [],
+    users = {},
   // Var to hold the user being chatted with
-      chattingWith = '';
+    chattingWith = '',
+  // Holds the #event jQuery element references
+    event = [],
+  // Holds the #Chat refs
+    chat = [],
+    Btn = function (value, onClick) {
+      this.value = value || '';
+      this.onClick = onClick;
+    };
   
   ////////////////////////////
-  //  User List Functions
+  //  Event Functions
   ////////////////////////////
-  function buildCalling(name) {
-    var caller$ = $('\
-      <h3>Calling ' + name + '...</h3>');
+  
+  // Get references to all the event elements
+  function findElements() {
+    var event$ = $('#event'), chat$ = $('#chat');
     
-    return caller$;
+    event.event = event$;
+    event.header = event$.find('#event-header');
+    event.text = event$.find('#event-text');
+    event.yes = event$.find('#event-yes');
+    event.no = event$.find('#event-no');
+    
+    chat.chat = chat$;
+    chat.quit = chat$.find('#quit');
+    chat.me = chat$.find('#me');
+    chat.other = chat$.find('#other');
   }
   
-  function buildRing(name) {
-    var ringer$ = $('\
-      <form>\
-        <h3><strong>' + name + '</strong> wants to chat!</h3>\
-        <input type="button" id="pickup" value="Pick Up"/>\
-        <input type="button" id="ignore" value="Ignore"/>\
-      </form>');
+  // Set up the event box
+  function buildEvent(header, text, yesBtn, noBtn) {
+    // Defaults
+    yesBtn = yesBtn || new Btn("OK");
+    noBtn = noBtn || new Btn("Cancel");
     
-    ringer$.find('#pickup').click(function () {
-      socket.emit('pickup', name);
-      ringer$.remove();
-    });
-    ringer$.find('#unavailable').click(function () {
-      socket.emit('unavailable', name);
-      ringer$.remove();
-    });
+    // Add header text (HTML Okay)
+    event.header.html(header || ' ');
+    // Add description text (HTML Okay)
+    event.text.html(text || ' ');
     
-    return ringer$;
+    // set up yes btn
+    event.yes.val(yesBtn.value);
+    if (yesBtn.onClick) {
+      event.yes
+        .click(yesBtn.onClick)
+        .addClass('btn-success');
+    } else {
+      event.yes
+        .removeClass('btn-success')
+        .off('click');
+    }
+    
+    // Set up no btn
+    event.no.val(noBtn.value);
+    if (noBtn.onClick) {
+      event.no
+        .click(noBtn.onClick)
+        .addClass('btn-danger');
+    } else {
+      event.no
+        .removeClass('btn-danger')
+        .off('click');
+    }
+  }
+  
+  // Fade the event box in, and move the chat box over
+  function fadeInEvent() {
+    event.event.removeClass('zero-width');
+    chat.chat.toggleClass('col-md-offset-1', 'col-md-offset-3');
+  }
+  // Fade the event box in, and move the chat box over
+  function fadeOutEvent() {
+    event.event.addClass('zero-width');
+    chat.chat.toggleClass('col-md-offset-1', 'col-md-offset-3');
+  }
+  
+  function showEvent(header, text, yesBtn, noBtn) {
+    // Set up the event div
+    buildEvent(header, text, yesBtn, noBtn);
+    fadeInEvent();
+  }
+  
+  function hideEvent() {
+    // empty the event box
+    buildEvent();
+    fadeOutEvent();
   }
   
   ////////////////////////////
@@ -45,32 +103,38 @@
   // Click handler for calling a user
   function userClickHandler(user) {
     return function () {
-      $('#events').append(buildCalling(user));
-      socket.emit('call',user);
+      // Show the calling event box
+      showEvent('Calling <strong>' + user + '</strong>...', '',
+        null,
+        // Allow user to cancel call
+        new Btn('Cancel', function () {
+          socket.emit('call-cancel', user);
+          hideEvent();
+        })
+        );
+      
+      socket.emit('call', user);
     };
   }
   // Populate the userlist
   function populateList() {
-    // Empty the current userlist
-    $('#users').empty();
-    
     // set up empty jQuery object to hold users
-    var users$ = $('<div><h3>Users Online</h3>');
+    var users$ = $(), user, clickHandler, user$;
     
     // Loop through users array and add each one to DOM
-    for (var user in users) {
-      if(users.hasOwnProperty(user)){
+    for (user in users) {
+      if (users.hasOwnProperty(user)) {
         // set up the click handler for the user
-        var clickHandler = userClickHandler(user);
+        clickHandler = userClickHandler(user);
         // build the user <p>, with the click handler
-        var user$ = $('<p>' + user + '</p>')
+        user$ = $('<li><a>' + user + '</a></li>')
                     .click(clickHandler);
         // append to the user object
-        users$.append(user$);
+        users$ = users$.add(user$);
       }
     }
     // append users to the DOM
-    $('#users').append(users$);
+    $('#users').empty().append(users$);
   }
   function emptyEvents() {
     $('#events').empty();
@@ -99,17 +163,19 @@
    * Add a character to a box
    */
   function writeChar(id, char) {
-    const MAX_LENGTH = 50;
-    var textLength;
+    var MAX_LENGTH = 50,
+      textLength,
+      text;
     
     // Get current text
-    var text = $(id).val();
+    text = $(id).val();
     // Append new character
     text = text + String.fromCharCode(char);
     // cut to MAX LENGTH
     textLength = text.length;
-    if (textLength > MAX_LENGTH)
-      text = text.substring(textLength-MAX_LENGTH, textLength);
+    if (textLength > MAX_LENGTH) {
+      text = text.substring(textLength - MAX_LENGTH, textLength);
+    }
     
     // Set new text
     $(id).val(text);
@@ -122,37 +188,36 @@
   }
   
   function handleKeys(e) {
+    if (!(chattingWith)) return;
     var key = e.which,
-        id = '#me';
+      id = '#me';
     
     // Backspace works fine as keydown outside Firefox
     if (e.type === "keydown") {
       // Backspace
       if (key === 8) {
         //if (!($.browser.mozilla)) {
-          removeChar(id);
-          socket.emit('back');
+        removeChar(id);
+        socket.emit('back');
         //}
-        event.preventDefault();
+        e.preventDefault();
       }
-    }
     // All other events are keypress
-    else if (e.type === "keypress") {
+    } else if (e.type === "keypress") {
       // Backspace repeats as keypress in Firefox
       if (key === 8) {
         removeChar(id);
         socket.emit('back');
-      }
       // Send ENTER
-      else if (key === 13) {
+      } else if (key === 13) {
         emptyBox(id);
         socket.emit('clear');
-      }
       // Send Characters
-      else if (32 <= key && key <= 126) {
+      } else if (32 <= key && key <= 126) {
         writeChar(id, key);
         socket.emit('char', key);
       }
+      e.preventDefault();
     }
   }
   
@@ -162,6 +227,8 @@
   function addUserHandlers() {
     // Receive userlist
     socket.on('userlist', function (userArray) {
+      console.log('userlist');
+      
       // save userarray
       users = JSON.parse(userArray);
       // populate the userlist
@@ -182,46 +249,60 @@
     //ring
     socket.on('ring', function (user) {
       console.log('ring');
-      emptyEvents();
-      $('#events').append(buildRing(user));
+      // Show the Ring event box
+      showEvent('<strong>' + user + '</strong> wants to chat!', '',
+        new Btn('Chat', function () {
+          socket.emit('pickup', user);
+        }),
+        new Btn('Busy', function () {
+          socket.emit('unavailable', user);
+          hideEvent();
+        })
+        );
     });
     //unavailable
     socket.on('unavailable', function (user) {
-      emptyEvents();
+      // Show the Ring event box
+      showEvent('<strong>' + user + '</strong> wants to chat!', '',
+        new Btn('Chat', function () {
+          socket.emit('pickup', name);
+        }),
+        new Btn('Busy', function () {
+          socket.emit('unavailable', name);
+          hideEvent();
+        })
+        );
       $('#events').showCenteredMessage(user + ' was unavailable.');
     });
     //startchat
     socket.on('startchat', function (user) {
       var chat$ = $('#chat');
-      emptyEvents();
+      hideEvent();
       clearChat();
       chattingWith = user;
+      
       // set other username
       chat$.find('#head-other').text(user);
-      // show chat box
-      chat$.fadeIn('fast');
     });
     //endchat
     socket.on('endchat', function (user) {
-      var chat$ = $('#chat');
+      // Clear chatting var
       chattingWith = '';
-      // show chat box
-      chat$.fadeOut('fast', function () {
-        // clear other username
-        $('#events').showCenteredMessage(
-          user + ' has left the chat.', function () {
-            chat$.find('#head-other').text('');
-            clearChat();
-        });
-      });
+      
+      // clear other username
+      showEvent(user + " has left the chat.", "You can choose someone else to chat with.",
+        new Btn("OK", function () {
+          chat.chat.find('#head-other').text('');
+          clearChat();
+        }));
     });
   }
   function addChatHandlers() {
     // User types character
-    $(document).
-    keypress(handleKeys).
-    // User typed backspace
-    keydown(handleKeys);
+    $('#input').
+      keypress(handleKeys).
+      // User typed backspace
+      keydown(handleKeys);
     
     // Receive character
     socket.on('char', function (char) {
@@ -235,24 +316,31 @@
     });
     // Receive clearbox
     socket.on('clear', function () {
-      if (!(chattingWith)) return;
+      if (!(chattingWith)) {
+        return;
+      }
       emptyBox('#other');
     });
   }
   
   // Set up Socket & Handlers on document ready
-  $(document).ready(function() {
+  $(document).ready(function () {
     // set up an io socket & connect
     socket = io.connect('');
     
-    socket.on('err',function (msg) {
-      $('#events').showCenteredMessage(msg, {callback: function () {
-        window.location.replace('/');
-      }});
+    findElements();
+    
+    socket.on('err', function (msg) {
+      showEvent("Authentication Error", "Please sign in before chatting.",
+        new Btn("OK", function () {window.location.replace('/'); }));
     });
     
     addUserHandlers();
     addChooserHandlers();
     addChatHandlers();
+    
+    $(document).click(function () {
+      $('#input').focus();
+    });
   });
-})();
+})(jQuery);
