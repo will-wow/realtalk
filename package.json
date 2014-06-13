@@ -14,8 +14,8 @@
   },
   "subdomain": "webtalk",
   "domains": [
-    "whentheresawill.net",
-    "www.whenthereawill.net"
+    "webtalk.whentheresawill.net",
+    "www.webtalk.whenthereawill.net"
   ],
   "engines": {
     "node": "0.10.x"
