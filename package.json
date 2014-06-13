@@ -8,7 +8,7 @@
   "dependencies": {
     "express": "3.5.1",
     "connect": "*",
-    "socket.io": "~0.9.6",
+    "socket.io": "~1.0.4",
     "session.socket.io": "*",
     "ejs": "*"
   }

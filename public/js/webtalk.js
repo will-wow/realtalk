@@ -1,3 +1,8 @@
+/*TODO:
+Implement disconnect events
+Refactor for OOP
+Implement http://backbonejs.org/?
+*/
 (function ($) {
   ////////////////////////////
   //  Public Variables
@@ -116,6 +121,39 @@
       socket.emit('call', user);
     };
   }
+  
+  /**
+   * Do the work when a chat ends
+   * Can be called when hanging up, or being hung up on
+   */
+  function chatEnder() {
+    // Clear chatting var
+    chattingWith = '';
+    chat.chat.find('#head-other').text(' ');
+    clearChat();
+  }
+  
+  /**
+   * Hang up a chat
+   */
+  function hangUpHandler() {
+    // Send hangup event
+    socket.emit('hangup', chattingWith);
+    // Clean up chat
+    chatEnder();
+  }
+  
+  /**
+   * Handle a hang-up event 
+   */
+  function hungUpHandler(user) {
+    // Display event about hangup
+    showEvent(user + " has left the chat.", "You can choose someone else to chat with.",
+      new Btn("OK", hideEvent));
+    // Clean up chat
+    chatEnder();
+  }
+  
   // Populate the userlist
   function populateList() {
     // set up empty jQuery object to hold users
@@ -181,6 +219,25 @@
     $(id).val(text);
   }
   
+  function writeInput(id, input) {
+    var MAX_LENGTH = 50,
+      textLength,
+      text;
+      
+    // Get current text
+    text = $(id).val();
+    // Append new character
+    text = text + input;
+    // cut to MAX LENGTH
+    textLength = text.length;
+    if (textLength > MAX_LENGTH) {
+      text = text.substring(textLength - MAX_LENGTH, textLength);
+    }
+    
+    // Set new text
+    $(id).val(text);
+  }
+  
   // Remove a character from a box
   function removeChar(id) {
     var text = $(id).val();
@@ -221,6 +278,46 @@
     }
   }
   
+  function handleBackspace(e) {
+    if (!(chattingWith)) return;
+    var key = e.which,
+      id = '#me';
+    
+    if (key === 8) {
+      removeChar(id);
+      socket.emit('back');
+      e.preventDefault();
+    } else if (key === 13) {
+      emptyBox(id);
+      socket.emit('clear');
+      e.preventDefault();
+    }
+  }
+  
+  function handleInput() {
+    if (!(chattingWith)) return;
+    
+    var input$ = $(this),
+      val = input$.val();
+    
+    if (val) {
+      // User typed a string
+      // Remove the first character, which is there to handle backspace
+      val = val.substring(1,val.length);
+      // Type the string into the #me box
+      writeInput('#me',val);
+      // Send it to the server
+      socket.emit('input', val);
+    } else {
+      // User hit backspace
+      removeChar('#me');
+      socket.emit('back');
+    }
+    // reset the input box
+    input$.val(' ');
+  }
+  
+  
   ////////////////////////////
   //  Event Handler Wrappers
   ////////////////////////////
@@ -246,81 +343,72 @@
     });
   }
   function addChooserHandlers() {
-    //ring
-    socket.on('ring', function (user) {
-      console.log('ring');
-      // Show the Ring event box
-      showEvent('<strong>' + user + '</strong> wants to chat!', '',
-        new Btn('Chat', function () {
-          socket.emit('pickup', user);
-        }),
-        new Btn('Busy', function () {
-          socket.emit('unavailable', user);
-          hideEvent();
-        })
-        );
-    });
-    //unavailable
-    socket.on('unavailable', function (user) {
-      // Show the Ring event box
-      showEvent('<strong>' + user + '</strong> wants to chat!', '',
-        new Btn('Chat', function () {
-          socket.emit('pickup', name);
-        }),
-        new Btn('Busy', function () {
-          socket.emit('unavailable', name);
-          hideEvent();
-        })
-        );
-      $('#events').showCenteredMessage(user + ' was unavailable.');
-    });
-    //startchat
-    socket.on('startchat', function (user) {
-      var chat$ = $('#chat');
-      hideEvent();
-      clearChat();
-      chattingWith = user;
-      
-      // set other username
-      chat$.find('#head-other').text(user);
-    });
-    //endchat
-    socket.on('endchat', function (user) {
-      // Clear chatting var
-      chattingWith = '';
-      
-      // clear other username
-      showEvent(user + " has left the chat.", "You can choose someone else to chat with.",
-        new Btn("OK", function () {
-          chat.chat.find('#head-other').text('');
-          clearChat();
-        }));
-    });
+    // Quit button
+    chat.quit.click(hangUpHandler);
+    
+    //Socket.io events
+    socket
+      //Ring
+      .on('ring', function (user) {
+        // Show the Ring event box
+        showEvent('<strong>' + user + '</strong> wants to chat!', '',
+          new Btn('Chat', function () {
+            socket.emit('pickup', user);
+          }),
+          new Btn('Busy', function () {
+            socket.emit('unavailable', user);
+            hideEvent();
+          })
+          );
+      })
+      //unavailable
+      .on('unavailable', function (user) {
+        // Show the Ring event box
+        showEvent(user + ' was unavailable.', '', new Btn('OK',hideEvent));
+      })
+      //startchat
+      .on('startchat', function (user) {
+        var chat$ = $('#chat');
+        hideEvent();
+        clearChat();
+        chattingWith = user;
+        
+        // set other username
+        chat$.find('#head-other').text(user);
+      })
+      //endchat
+      .on('hungup',hungUpHandler);
   }
   function addChatHandlers() {
     // User types character
-    $('#input').
-      keypress(handleKeys).
+    
+    $('#input')
+      .keypress(handleBackspace)
       // User typed backspace
-      keydown(handleKeys);
+      .keydown(handleBackspace)
+      .on("textchange", handleInput);
     
     // Receive character
-    socket.on('char', function (char) {
-      if (!(chattingWith)) return;
-      writeChar('#other', char);
-    });
-    // Receive backspace
-    socket.on('back', function () {
-      if (!(chattingWith)) return;
-      removeChar('#other');
-    });
-    // Receive clearbox
-    socket.on('clear', function () {
-      if (!(chattingWith)) {
-        return;
-      }
-      emptyBox('#other');
-    });
+    socket
+      .on('char', function (char) {
+        if (!(chattingWith)) return;
+        writeChar('#other', char);
+      })
+      // Receive input
+      .on('input', function (input) {
+        if (!(chattingWith)) return;
+        writeInput('#other', input);
+      })
+      // Receive backspace
+      .on('back', function () {
+        if (!(chattingWith)) return;
+        removeChar('#other');
+      })
+      // Receive clearbox
+      .on('clear', function () {
+        if (!(chattingWith)) return;
+        emptyBox('#other');
+      });
   }
   
   // Set up Socket & Handlers on document ready
