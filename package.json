@@ -1,6 +1,6 @@
 {
-  "name": "application-name",
-  "version": "0.0.1",
+  "name": "webtalk",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "node app.js"
@@ -11,5 +11,13 @@
     "socket.io": "~1.0.4",
     "session.socket.io": "*",
     "ejs": "*"
+  },
+  "subdomain": "webtalk",
+  "domains": [
+    "whentheresawill.net",
+    "www.whenthereawill.net"
+  ],
+  "engines": {
+    "node": "0.10.x"
   }
 }
