@@ -132,19 +132,19 @@ Refactor for OOP
     }
     UsersView.prototype = {
         // Click handler for calling a user
-        _userClickHandler: function (user) {
+        _userClickHandler: function (username) {
             var showMessage = this._showMessage;
             return function() {
                 // Show the calling event box
-                showMessage('Calling <strong>' + user + '</strong>...', '',
+                showMessage('Calling <strong>' + username + '</strong>...', '',
                 null,
                 // Allow user to cancel call
                 new Btn('Cancel', function() {
-                    socket.emit('call-cancel', user);
+                    socket.emit('call-cancel', username);
                     //TODO: close message & resize
                 }));
     
-                socket.emit('call', user);
+                socket.emit('call', username);
             };
         },
         // Populate the userlist
@@ -545,8 +545,10 @@ Refactor for OOP
         messageView.setUpMsg(messageModel.getMessage());
         
         // Update the box sizes
-        if (!dontSetSizes)
+        if (!dontSetSizes) {
             setSizes();
+            collapseNav();
+        }
     }
     /**
      * Close the current message
@@ -584,8 +586,10 @@ Refactor for OOP
         chatModel.startChat(username);
         chatView.startChat(username);
         // Update the box sizes
-        if (!dontSetSizes)
+        if (!dontSetSizes) {
             setSizes();
+            collapseNav();
+        }
     }
     /**
      * Handle a hang-up from the user
@@ -633,6 +637,7 @@ Refactor for OOP
     function startChatHandler(username) {
         msgClose(true);
         chatStart(username);
+        inputFocus();
     }
     /**
      * Handle an event where the other user was unavailable
@@ -699,7 +704,12 @@ Refactor for OOP
     function inputFocus () {
         $('#input').focus();
     }
-
+    /**
+     * Collapse the nav bar
+     */ 
+    function collapseNav() {
+        $('.navbar-collapse.collapse.in').collapse('hide');
+    }
 
     // Set up Socket & Handlers on document ready
     $(document).ready(function() {
