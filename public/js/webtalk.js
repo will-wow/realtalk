@@ -1,434 +1,778 @@
 /*TODO:
-Implement disconnect events
 Refactor for OOP
-Implement http://backbonejs.org/?
 */
-(function ($) {
-  ////////////////////////////
-  //  Public Variables
-  ////////////////////////////
-  // "use strict";
-  // Holds reference to socket
-  var socket,
-  // Holds all current users
-    users = {},
-  // Var to hold the user being chatted with
-    chattingWith = '',
-  // Holds the #event jQuery element references
-    event = [],
-  // Holds the #Chat refs
-    chat = [],
-    Btn = function (value, onClick) {
-      this.value = value || '';
-      this.onClick = onClick;
+(function($, io) {
+    // "use strict";
+    var socket,
+        chatModel,
+        chatView,
+        emptyView,
+        messageModel,
+        messageView,
+        usersModel,
+        usersView;
+    
+    /**
+     * Build a setSize function
+     * @param {jQuery} box - The element to work on
+     * @param {String} classClosed - The class to use when the box is closed
+     * @param {String} classSelf - The class to use when only this box is open
+     * @param {String} classBoth - The class to use when both boxes are open
+     * @return The setSize function for a box
+     */
+    function setSize(box, classClosed, classSelf, classBoth) {
+        return function (thisOpen, otherOpen) {
+            box = $(box);
+            if (!thisOpen) {
+                // This is closed
+                box
+                    .removeClass(classSelf + ' ' + classBoth)
+                    .addClass(classClosed);
+            } else {
+                // This is open
+                if (otherOpen) {
+                    // Other is also open
+                    box
+                        .removeClass(classSelf + ' ' + classClosed)
+                        .addClass(classBoth);
+                } else {
+                    // Other is closed
+                    box
+                        .removeClass(classBoth + ' ' + classClosed)
+                        .addClass(classSelf);
+                }
+            }
+        };
+    }
+    
+    ////////////////////////////
+    //  Button Class
+    ////////////////////////////
+    /**
+     * Class for generating buttons
+     * @param value - The button text
+     * @param onClick - The button's click handler
+     */
+    function Btn(value, onClick) {
+        this.value = value || '';
+        this.onClick = onClick;
+    }
+
+    ////////////////////////////
+    //  User MVC
+    ////////////////////////////
+    /**
+     * User Model
+     */
+    function User(username, available) {
+        this.name = username;
+        this.available = available;
+    }
+    /**
+     * Users Model
+     */
+    function UsersModel() {
+        this._users = [];
+    }
+    UsersModel.prototype = {
+        _sortUsers: function () {
+            this._users.sort(function (a,b){
+                if (a.name > b.name)
+                    return 1;
+                if (a.name < b.name)
+                    return -1;
+                return 0;
+            });
+        },
+        /**
+         * Add a user to the list
+         * @param: {User} user - the new User instance
+         */
+        addUser: function (username, available) {
+            this._users.push(new User(username, available));
+            this._sortUsers();
+        },
+        /**
+         * Remove a user from the list
+         * @param: {String} name - the username to remove
+         */
+        removeUser: function (username) {
+            var users = this._users,
+                i = 0;
+            for (i; i < users.length; i++) {
+                if (users[i].name === username) {
+                    users.splice(i,1);
+                    return;
+                }
+            }
+        },
+        setAvailable: function (username, available) {
+            var users = this._users,
+                i = 0;
+            for (i; i < users.length; i++) {
+                if (users[i].name === username) {
+                    users[i].available = available;
+                    return;
+                }
+            }
+        },
+        /**
+         * Return the userlist
+         */
+        getUsers: function () {
+            // Return sorted list of Users
+            return this._users;
+        }
     };
-  
-  ////////////////////////////
-  //  Event Functions
-  ////////////////////////////
-  
-  // Get references to all the event elements
-  function findElements() {
-    var event$ = $('#event'), chat$ = $('#chat');
-    
-    event.event = event$;
-    event.header = event$.find('#event-header');
-    event.text = event$.find('#event-text');
-    event.yes = event$.find('#event-yes');
-    event.no = event$.find('#event-no');
-    
-    chat.chat = chat$;
-    chat.quit = chat$.find('#quit');
-    chat.me = chat$.find('#me');
-    chat.other = chat$.find('#other');
-  }
-  
-  // Set up the event box
-  function buildEvent(header, text, yesBtn, noBtn) {
-    // Defaults
-    yesBtn = yesBtn || new Btn("OK");
-    noBtn = noBtn || new Btn("Cancel");
-    
-    // Add header text (HTML Okay)
-    event.header.html(header || ' ');
-    // Add description text (HTML Okay)
-    event.text.html(text || ' ');
-    
-    // set up yes btn
-    event.yes.val(yesBtn.value);
-    if (yesBtn.onClick) {
-      event.yes
-        .click(yesBtn.onClick)
-        .addClass('btn-success');
-    } else {
-      event.yes
-        .removeClass('btn-success')
-        .off('click');
+    /**
+     * Users View
+     */
+    function UsersView(showMessage) {
+        this._showMessage = showMessage;
     }
+    UsersView.prototype = {
+        // Click handler for calling a user
+        _userClickHandler: function (user) {
+            var showMessage = this._showMessage;
+            return function() {
+                // Show the calling event box
+                showMessage('Calling <strong>' + user + '</strong>...', '',
+                null,
+                // Allow user to cancel call
+                new Btn('Cancel', function() {
+                    socket.emit('call-cancel', user);
+                    //TODO: close message & resize
+                }));
     
-    // Set up no btn
-    event.no.val(noBtn.value);
-    if (noBtn.onClick) {
-      event.no
-        .click(noBtn.onClick)
-        .addClass('btn-danger');
-    } else {
-      event.no
-        .removeClass('btn-danger')
-        .off('click');
-    }
-  }
-  
-  // Fade the event box in, and move the chat box over
-  function fadeInEvent() {
-    event.event.removeClass('zero-width');
-    chat.chat.toggleClass('col-md-offset-1', 'col-md-offset-3');
-  }
-  // Fade the event box in, and move the chat box over
-  function fadeOutEvent() {
-    event.event.addClass('zero-width');
-    chat.chat.toggleClass('col-md-offset-1', 'col-md-offset-3');
-  }
-  
-  function showEvent(header, text, yesBtn, noBtn) {
-    // Set up the event div
-    buildEvent(header, text, yesBtn, noBtn);
-    fadeInEvent();
-  }
-  
-  function hideEvent() {
-    // empty the event box
-    buildEvent();
-    fadeOutEvent();
-  }
-  
-  ////////////////////////////
-  //  Chooser Functions
-  ////////////////////////////
-  // Click handler for calling a user
-  function userClickHandler(user) {
-    return function () {
-      // Show the calling event box
-      showEvent('Calling <strong>' + user + '</strong>...', '',
-        null,
-        // Allow user to cancel call
-        new Btn('Cancel', function () {
-          socket.emit('call-cancel', user);
-          hideEvent();
-        })
-        );
-      
-      socket.emit('call', user);
+                socket.emit('call', user);
+            };
+        },
+        // Populate the userlist
+        populateList: function (users) {
+            // set up empty jQuery object to hold users
+            var users$ = $(),
+                i, user$,
+                username, clickHandler;
+            
+            // Loop through users array and add each one to DOM
+            for (i in users) {
+                if (users.hasOwnProperty(i)) {
+                    username = users[i].name;
+                    // set up the click handler for the user
+                    clickHandler = this._userClickHandler(username);
+                    // build the user <p>, with the click handler
+                    user$ = $('<li><a>' + username + '</a></li>').click(clickHandler);
+                    // append to the user object
+                    users$ = users$.add(user$);
+                }
+            }
+            // append users to the DOM
+            $('#users').empty().append(users$);
+        }
     };
-  }
-  
-  /**
-   * Do the work when a chat ends
-   * Can be called when hanging up, or being hung up on
-   */
-  function chatEnder() {
-    // Clear chatting var
-    chattingWith = '';
-    chat.chat.find('#head-other').text(' ');
-    clearChat();
-  }
-  
-  /**
-   * Hang up a chat
-   */
-  function hangUpHandler() {
-    // Send hangup event
-    socket.emit('hangup', chattingWith);
-    // Clean up chat
-    chatEnder();
-  }
-  
-  /**
-   * Handle a hang-up event 
-   */
-  function hungUpHandler(user) {
-    // Display event about hangup
-    showEvent(user + " has left the chat.", "You can choose someone else to chat with.",
-      new Btn("OK", hideEvent));
-    // Clean up chat
-    chatEnder();
-  }
-  
-  // Populate the userlist
-  function populateList() {
-    // set up empty jQuery object to hold users
-    var users$ = $(), user, clickHandler, user$;
     
-    // Loop through users array and add each one to DOM
-    for (user in users) {
-      if (users.hasOwnProperty(user)) {
-        // set up the click handler for the user
-        clickHandler = userClickHandler(user);
-        // build the user <p>, with the click handler
-        user$ = $('<li><a>' + user + '</a></li>')
-                    .click(clickHandler);
-        // append to the user object
-        users$ = users$.add(user$);
-      }
+    
+    ////////////////////////////
+    //  Message MVC
+    ////////////////////////////
+    /**
+     * Message Model
+     */
+    function MessageModel() {
+        // State of the message popup
+        this._open = false;
+        // The message info
+        this._header = '';
+        this._text = '';
+        this._yesBtn = null;
+        this._noBtn = null;
+        // Message type
+        this._type = null;
     }
-    // append users to the DOM
-    $('#users').empty().append(users$);
-  }
-  function emptyEvents() {
-    $('#events').empty();
-  }
-  
-  ////////////////////////////
-  //  Chat Functions
-  ////////////////////////////
-  
-  /**
-   * Empty a chat box
-   */
-  function emptyBox(id) {
-    $(id).val('');
-  }
-  
-  /**
-   * Clear the chat boxes
-   */
-  function clearChat() {
-    emptyBox('#other');
-    emptyBox('#me');
-  }
-  
-  /**
-   * Add a character to a box
-   */
-  function writeChar(id, char) {
-    var MAX_LENGTH = 50,
-      textLength,
-      text;
-    
-    // Get current text
-    text = $(id).val();
-    // Append new character
-    text = text + String.fromCharCode(char);
-    // cut to MAX LENGTH
-    textLength = text.length;
-    if (textLength > MAX_LENGTH) {
-      text = text.substring(textLength - MAX_LENGTH, textLength);
-    }
-    
-    // Set new text
-    $(id).val(text);
-  }
-  
-  function writeInput(id, input) {
-    var MAX_LENGTH = 50,
-      textLength,
-      text;
-      
-    // Get current text
-    text = $(id).val();
-    // Append new character
-    text = text + input;
-    // cut to MAX LENGTH
-    textLength = text.length;
-    if (textLength > MAX_LENGTH) {
-      text = text.substring(textLength - MAX_LENGTH, textLength);
-    }
-    
-    // Set new text
-    $(id).val(text);
-  }
-  
-  // Remove a character from a box
-  function removeChar(id) {
-    var text = $(id).val();
-    $(id).val(text.substring(0, text.length - 1));
-  }
-  
-  function handleKeys(e) {
-    if (!(chattingWith)) return;
-    var key = e.which,
-      id = '#me';
-    
-    // Backspace works fine as keydown outside Firefox
-    if (e.type === "keydown") {
-      // Backspace
-      if (key === 8) {
-        //if (!($.browser.mozilla)) {
-        removeChar(id);
-        socket.emit('back');
-        //}
-        e.preventDefault();
-      }
-    // All other events are keypress
-    } else if (e.type === "keypress") {
-      // Backspace repeats as keypress in Firefox
-      if (key === 8) {
-        removeChar(id);
-        socket.emit('back');
-      // Send ENTER
-      } else if (key === 13) {
-        emptyBox(id);
-        socket.emit('clear');
-      // Send Characters
-      } else if (32 <= key && key <= 126) {
-        writeChar(id, key);
-        socket.emit('char', key);
-      }
-      e.preventDefault();
-    }
-  }
-  
-  function handleBackspace(e) {
-    if (!(chattingWith)) return;
-    var key = e.which,
-      id = '#me';
-    
-    if (key === 8) {
-      removeChar(id);
-      socket.emit('back');
-      e.preventDefault();
-    } else if (key === 13) {
-      emptyBox(id);
-      socket.emit('clear');
-      e.preventDefault();
-    }
-  }
-  
-  function handleInput() {
-    if (!(chattingWith)) return;
-    
-    var input$ = $(this),
-      val = input$.val();
-    
-    if (val) {
-      // User typed a string
-      // Remove the first character, which is there to handle backspace
-      val = val.substring(1,val.length);
-      // Type the string into the #me box
-      writeInput('#me',val);
-      // Send it to the server
-      socket.emit('input', val);
-    } else {
-      // User hit backspace
-      removeChar('#me');
-      socket.emit('back');
-    }
-    // reset the input box
-    input$.val(' ');
-  }
-  
-  
-  ////////////////////////////
-  //  Event Handler Wrappers
-  ////////////////////////////
-  function addUserHandlers() {
-    // Receive userlist
-    socket.on('userlist', function (userArray) {
-      console.log('userlist');
-      
-      // save userarray
-      users = JSON.parse(userArray);
-      // populate the userlist
-      populateList();
-    });
-    // Add a user to the list
-    socket.on('userIn', function (user) {
-      users[user] = true;
-      populateList();
-    });
-    // Remove a user from the list
-    socket.on('userOut', function (user) {
-      delete users[user];
-      populateList();
-    });
-  }
-  function addChooserHandlers() {
-    // Quit button
-    chat.quit.click(hangUpHandler);
-    
-    //Socket.io events
-    socket
-      //Ring
-      .on('ring', function (user) {
-        // Show the Ring event box
-        showEvent('<strong>' + user + '</strong> wants to chat!', '',
-          new Btn('Chat', function () {
-            socket.emit('pickup', user);
-          }),
-          new Btn('Busy', function () {
-            socket.emit('unavailable', user);
-            hideEvent();
-          })
-          );
-      })
-      //unavailable
-      .on('unavailable', function (user) {
-        // Show the Ring event box
-        showEvent(user + ' was unavailable.', '', new Btn('OK',hideEvent));
-      })
-      //startchat
-      .on('startchat', function (user) {
-        var chat$ = $('#chat');
-        hideEvent();
-        clearChat();
-        chattingWith = user;
+    MessageModel.prototype = {
         
-        // set other username
-        chat$.find('#head-other').text(user);
-      })
-      //endchat
-      .on('hungup',hungUpHandler);
-  }
-  function addChatHandlers() {
-    // User types character
+        /**
+         * Enum of type options
+         * Not sure if this will be useful
+         */
+        types: {
+            CALL: false,
+            RING: false,
+            UNAVAILABLE: true,
+            ERR: false
+        },
+        /**
+         * Return the state of the message model
+         */
+        getMessage: function() {
+            return {
+                open: this._open || false,
+                header: this._header || ' ',
+                text: this._text || ' ',
+                yesBtn: this._yesBtn || new Btn("OK"),
+                noBtn: this._noBtn || new Btn("Cancel"),
+            };
+        },
+        /**
+         * Return the current message type
+         */
+        getType: function () {
+            return this._type;
+        },
+        /**
+         * Send in new values to the message model. 
+         */
+        setMessage: function(open, type, header, text, yesBtn, noBtn) {
+            // Update model
+            this._open = open;
+            this._type = type;
+            this._header = header;
+            this._text = text;
+            this._yesBtn = yesBtn;
+            this._noBtn = noBtn;
+        },
+        /**
+         * Set the open status
+         */
+        setOpen: function(open) {
+            this._open = open;
+        },
+        /**
+         * Get the open status
+         */
+        getOpen: function() {
+            return this._open;
+        },
+    };
+    /**
+     * Message View
+     */
+    function MessageView () {
+        var msg;
+        // Set up references to parts of the event view
+        this._msg = msg = $('#message');
+        this._header = msg.find('#event-header');
+        this._text = msg.find('#event-text');
+        this._yes = msg.find('#event-yes');
+        this._no = msg.find('#event-no');
+        /**
+         * Set the message size class
+         * @param {boolean} messageOpen - Open state of the message box
+         * @param {boolean} chatOpen - Open state of the chat box
+         */
+        this.setSize = setSize(this._msg,'zero-width','col-md-offset-4','col-md-offset-1');
+    }
+    MessageView.prototype = {
+        /**
+         * Set up a button
+         * @param name - Name of the button (yes/no)
+         * @param classname - Name of the css class for the button
+         * @param btn - The button model object to use
+         */
+        _setButton: function(name, classname, btn) {
+            // Add _ to get the property name
+            name = '_' + name;
+
+            // Set the button's value
+            this[name].val(btn.value);
+            // Deal with click handler
+            if (btn.onClick) {
+                // If there is one:
+                this[name]
+                    // Add the handler
+                    .click(btn.onClick)
+                    // Add the given class name to style the btn
+                    .addClass(classname);
+            }
+            else {
+                // if no handler
+                this[name]
+                    // remove the given class to gray out the btn
+                    .removeClass(classname)
+                    // remove any click handlers
+                    .off('click');
+            }
+        },
+        /**
+         * Set up the message box
+         * @param message - The message object from the controller
+         */
+        setUpMsg: function(message) {
+            // Add header text (HTML Okay)
+            this._header.html(message.header);
+            // Add description text (HTML Okay)
+            this._text.html(message.text);
+            // set up yes btn
+            this._setButton('yes', 'btn-success', message.yesBtn);
+            // set up no btn
+            this._setButton('no', 'btn-danger', message.noBtn);
+        }
+    };
+
+
+    ////////////////////////////
+    //  Chat MVC
+    ////////////////////////////
+    /**
+     * Chat Model
+     */
+    function ChatModel() {
+        // If true, chat is open
+        this._open = false;
+        // The user being chatted with
+        this._chattingWith = null;
+        // The user's chat string
+        this._meTxt = '';
+        // The other user's chat string
+        this._otherTxt = '',
+        // The max length of a text string
+        this._MAX_LENGTH = 50;
+    }
+    ChatModel.prototype = {
+        // Chooser methods
+        setOpen: function (open) {
+            this._open = open;
+        },
+        getOpen: function () {
+            return this._open;
+        },
+        setChattingWith: function (chattingWith) {
+            this._chattingWith = chattingWith;
+        },
+        getChattingWith: function () {
+            return this._chattingWith;
+        },
+        endChat: function () {
+            this.setChattingWith(null);
+            this.setOpen(false);
+            this.emptyChat('me');
+            this.emptyChat('other');
+        },
+        startChat: function (username) {
+            this.setChattingWith(username);
+            this.setOpen(true);
+        },
+        // Chat methods
+        /**
+         * Return the name of a userTxt variable
+         * @param: {String} userType - Either "me" or "other"
+         */
+        _txtRef: function (userType) {
+            return '_' + userType + 'Txt';
+        },
+        /**
+         * Add input to a chat box
+         * @param: {String} input - The input to add
+         * @param: {String} userType - Either "me" or "other"
+         */
+        writeInput: function (userType, input) {
+            // Don't update if not chatting
+            if (!(this.getChattingWith())) return;
+            
+            // Get the name of the referenced txt variable
+            var textRef = this._txtRef(userType),
+            // The current text
+                text = this[textRef],
+            // The length of the current text + input
+                textLength;
+
+            // Append new characters
+            text = text + input;
+            // Get new length
+            textLength = text.length;
+            // Cut to MAX_LENGTH
+            if (textLength > this._MAX_LENGTH) {
+                text = text.substring(textLength - this._MAX_LENGTH, textLength);
+            }
     
-    $('#input')
-      .keypress(handleBackspace)
-      // User typed backspace
-      .keydown(handleBackspace)
-      .on("textchange", handleInput);
+            // Set new text
+            this[textRef] = text;
+        },
+        /**
+         * Remove a character from a box
+         * @param: {String} userType - Either "me" or "other"
+         */
+        removeChar: function (userType) {
+            // Don't update if not chatting
+            if (!(this.getChattingWith())) return;
+            
+            var textRef = this._txtRef(userType),
+            // The current text
+                text = this[textRef];
+            // Remove one char from the text
+            this[textRef] = text.substring(0, text.length - 1);
+        },
+        /**
+         * Empty a chat String
+         * @param: {String} userType - Either "me" or "other"
+         */
+        emptyChat: function (userType) {
+            this[this._txtRef(userType)] = '';
+        },
+        /**
+         * Decide what to do with an input String (that starts with a space)
+         * @param: {String} userType - Either "me" or "other"
+         */
+        decideInput: function (input) {
+            // Don't update if not chatting
+            if (!(this.getChattingWith())) return;
     
-    // Receive character
-    socket
-      .on('char', function (char) {
-        if (!(chattingWith)) return;
-        writeChar('#other', char);
-      })
-      // Receive input
-      .on('input', function (input) {
-        if (!(chattingWith)) return;
-        writeInput('#other', input);
-      })
-      // Receive backspace
-      .on('back', function () {
-        if (!(chattingWith)) return;
-        removeChar('#other');
-      })
-      // Receive clearbox
-      .on('clear', function () {
-        if (!(chattingWith)) return;
-        emptyBox('#other');
-      });
-  }
-  
-  // Set up Socket & Handlers on document ready
-  $(document).ready(function () {
-    // set up an io socket & connect
-    socket = io.connect('');
+            if (input) {
+                // User typed a string
+                // Remove the first character, which is there to handle backspace
+                input = input.substring(1, input.length);
+                // Type the string into the #me box
+                this.writeInput('me', input);
+                // Send it to the server
+                socket.emit('input', input);
+            }
+            else {
+                // User hit backspace
+                this.removeChar('me');
+                socket.emit('back');
+            }
+        },
+        getCurrentText: function (userType) {
+            return this[this._txtRef(userType)];
+        }
+    };
+    /**
+     * Chat View
+     */
+    function ChatView () {
+        var chat;
+        // Get refs to the DOM
+        this._chat  = chat = $('#chat');
+        this._quit  = chat.find('#quit');
+        this._me    = chat.find('#me');
+        this._meHead = chat.find('#head-me');
+        this._other = chat.find('#other');
+        this._otherHead = chat.find('#head-other');
+        this.setSize = setSize(this._chat,'zero-width','col-md-offset-3','col-md-offset-1');
+    }
+    ChatView.prototype = {
+        _setHead: function (id, text) {
+            this['_' + id + 'Head'].text(text || ' ');
+        },
+        /**
+         * Empty a chat box
+         */
+        startChat: function (username) {
+            // Clear chatting var
+            this._setHead('other',username);
+        },
+        /**
+         * Do the work when a chat ends
+         * Can be called when hanging up, or being hung up on
+         */
+        closeChat: function () {
+            // Clear chatting var
+            this._setHead('other',' ');
+            this.updateChat('me','');
+            this.updateChat('other','');
+        },
+        // Chat methods
+        /**
+         * Update the contents of a chat box
+         * @param {String} id - The ID of the chat box (me or other)
+         * @param {String} text - The text to add to the box
+         */
+        updateChat: function (id, text) {
+            this['_' + id].val(text);
+        }
+    };
     
-    findElements();
+    /**
+     * View for when both chat and message are closed
+     */
+    function EmptyView() {
+        this._empty = $('#empty');
+    }
+    EmptyView.prototype = {
+        setSize: function (other1, other2) {
+            if ((other1 || other2))
+                this._empty.hide();
+            else
+                this._empty.show();
+        }
+    };
     
-    socket.on('err', function (msg) {
-      showEvent("Authentication Error", "Please sign in before chatting.",
-        new Btn("OK", function () {window.location.replace('/'); }));
+    
+    ////////////////////////////
+    //  Controller
+    ////////////////////////////
+    /**
+     * Set the sizes of the boxes based on their status
+     */
+    function setSizes() {
+        var chatOpen = chatModel.getOpen(),
+            messageOpen = messageModel.getOpen();
+        
+        chatView.setSize(chatOpen, messageOpen);
+        messageView.setSize(messageOpen, chatOpen);
+        emptyView.setSize(chatOpen, messageOpen);
+    }
+    ///////////////////
+    // User Handlers
+    ///////////////////
+    function userlistHandler(users) {
+        //TODO
+    }
+    function userInHandler(username, available) {
+        usersModel.addUser(username, available);
+        usersView.populateList(usersModel.getUsers());
+    }
+    function userOutHandler(username) {
+        usersModel.removeUser(username);
+        usersView.populateList(usersModel.getUsers());
+    }
+    function userAvailabilityHandler(username, available) {
+        usersModel.setAvailable(username, available);
+        usersView.populateList(usersModel.getUsers());
+    }
+    
+    ///////////////////
+    // Messge Handlers
+    ///////////////////
+    /**
+     * Open a new message
+     * @param {boolean} dontSetSizes=false - If true, don't run setSizes
+     */
+    function msgNew(header, text, yesBtn, noBtn, dontSetSizes) {
+        // Send the message to the Model
+        messageModel.setMessage(true, messageModel.types[''], header, text, yesBtn, noBtn);
+        // Push the message to the View
+        messageView.setUpMsg(messageModel.getMessage());
+        
+        // Update the box sizes
+        if (!dontSetSizes)
+            setSizes();
+    }
+    /**
+     * Close the current message
+     * @param {boolean} dontSetSizes=false - If true, don't run setSizes
+     */
+    function msgClose(dontSetSizes) {
+        // Clear the model
+        messageModel.setMessage(false);
+        // Push the message to the View
+        messageView.setUpMsg(messageModel.getMessage());
+        // Update the box sizes
+        if (!dontSetSizes)
+            setSizes();
+    }
+    
+    ////////////////////////////
+    //  Chooser Handlers
+    ////////////////////////////
+    /**
+     * End a chat
+     * @param {boolean} dontSetSizes=false - If true, don't run setSizes
+     */
+    function chatEnd(dontSetSizes) {
+        chatModel.endChat();
+        chatView.closeChat();
+        // Update the box sizes
+        if (!dontSetSizes)
+            setSizes();
+    }
+    /**
+     * Start a chat
+     * @param {boolean} dontSetSizes=false - If true, don't run setSizes
+     */
+    function chatStart (username, dontSetSizes) {
+        chatModel.startChat(username);
+        chatView.startChat(username);
+        // Update the box sizes
+        if (!dontSetSizes)
+            setSizes();
+    }
+    /**
+     * Handle a hang-up from the user
+     */
+    function hangUpHandler() {
+        // Send hangup event
+        socket.emit('hangup', chatModel.getChattingWith());
+        // End Chat
+        chatEnd();
+    }
+    /**
+     * Handle a hang-up from the other user 
+     */
+    function hungUpHandler(username) {
+        // Display event about hangup
+        // Don't reset the sizes (done next)
+        msgNew(username + " has left the chat.", "You can choose someone else to chat with.",
+            // Add OK button that closes the message
+            new Btn("OK",function () {
+                // close the message
+                msgClose();
+                }),true);
+        // End Chat
+        chatEnd();
+    }
+    /**
+     * Handle a ring event 
+     */
+    function ringHandler(username) {
+        // Show the Ring event box
+        msgNew('<strong>' + username + '</strong> wants to chat!', '',
+            // Click Chat to start chat
+            new Btn('Chat', function() {
+                socket.emit('pickup', username);
+            }),
+            // Click Busy to ignore
+            new Btn('Busy', function() {
+                socket.emit('unavailable', username);
+                msgClose();
+            }));
+    }
+    /**
+     * Handle a pick-up event
+     */
+    function startChatHandler(username) {
+        msgClose(true);
+        chatStart(username);
+    }
+    /**
+     * Handle an event where the other user was unavailable
+     */
+    function unavailableHandler(username) {
+        msgNew(username + ' was unavailable.', '', new Btn('OK', msgClose));
+    }
+    
+    ///////////////////
+    // Chat Handlers
+    ///////////////////
+    /**
+     * Add a character to a box
+     */ 
+    function inputHandler() {
+        var input$ = $(this);
+        
+        // Decide what to do with the input in the model
+        chatModel.decideInput(input$.val());
+        // Clear the input box
+        input$.val(' ');
+        // Update the chatbox
+        chatView.updateChat('me', chatModel.getCurrentText('me'));
+    }
+    /**
+     * Add a character to the #other box
+     * @param {String} text - The text to write
+     */ 
+    function textInHandler(text) {
+        chatModel.writeInput('other', text);
+        chatView.updateChat('other', chatModel.getCurrentText('other'));
+    }
+    /**
+     * Remove a char from the #other box
+     */ 
+    function removeHandler() {
+        chatModel.removeChar('other');
+        chatView.updateChat('other', chatModel.getCurrentText('other'));
+    }
+    /**
+     * Clear the #other box
+     */ 
+    function clearHandler() {
+        chatModel.emptyChat('other');
+        chatView.updateChat('other', chatModel.getCurrentText('other'));
+    }
+    
+    ///////////////////
+    // Other handlers
+    ///////////////////
+    /**
+     * Bring up a message on a server error
+     */ 
+    function errorHandler() {
+        msgNew("Authentication Error", "Please sign in before chatting.",
+            new Btn("OK", function() {
+                window.location.replace('/');
+            })
+        );
+    }
+    /**
+     * Focus on the inputBox
+     */ 
+    function inputFocus () {
+        $('#input').focus();
+    }
+
+
+    // Set up Socket & Handlers on document ready
+    $(document).ready(function() {
+        socket = io.connect(''),
+        chatModel = new ChatModel(),
+        chatView = new ChatView(),
+        emptyView = new EmptyView(),
+        messageModel = new MessageModel(),
+        messageView = new MessageView(),
+        usersModel = new UsersModel(),
+        usersView = new UsersView(msgNew);
+        
+        //Error handler
+        socket.on('err', errorHandler);
+
+        ////////////////////////////
+        //  User Events
+        ////////////////////////////
+        // Receive userlist
+        socket.on('userlist', function (users) {
+            console.log('userlist');
+    
+            // save userarray
+            usersModel._users = users;
+            // populate the userlist
+            usersView.populateList(usersModel.getUsers());
+        });
+        // Add a user to the list
+        socket.on('userIn', function (user) {
+            userInHandler(user.name, user.available);
+        });
+        // Remove a user from the list
+        socket.on('userOut', userOutHandler);
+        // Remove a user from the list
+        socket.on('userAvailability', function (user) {
+            userAvailabilityHandler(user.username, user.available);
+        });
+        
+        ////////////////////////////
+        //  Chooser Events
+        ////////////////////////////
+        // Quit button
+        chatView._quit.click(hangUpHandler);
+    
+        //Socket.io events
+        socket
+            //Ring
+            .on('ring', ringHandler)
+            //unavailable
+            .on('unavailable', unavailableHandler)
+            //startchat
+            .on('startchat', startChatHandler)
+            //endchat
+            .on('hungup', hungUpHandler);
+        
+        
+        ////////////////////////////
+        //  Chat Events
+        ////////////////////////////
+    
+        // User types character
+        $('#input').on("textchange", inputHandler);
+    
+        // Receive input
+        socket
+            // Receive text
+            .on('input', textInHandler)
+            // Receive backspace
+            .on('back', removeHandler)
+            // Receive clearbox
+            .on('clear', clearHandler);
+            
+        // Keep the focus on the chat box
+        $(document).click(inputFocus);
     });
-    
-    addUserHandlers();
-    addChooserHandlers();
-    addChatHandlers();
-    
-    $(document).click(function () {
-      $('#input').focus();
-    });
-  });
-})(jQuery);
+})(jQuery, io);

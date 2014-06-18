@@ -10,15 +10,6 @@ body {
   padding: 40px 15px;
 }
 
-#event {
-  background: rgb(70,70,70);
-  background: rgba(0,0,0,0.3);
-  color: white;
-  text-align: center;
-  min-height: 182px;
-  position: relative;
-}
-
 .section {
   -webkit-transition: width 0.3s ease;
   -moz-transition: width 0.3s ease;
@@ -26,14 +17,34 @@ body {
   transition: width 0.3s ease;
 }
 
-.chathead {
+#message {
+  background: rgb(70,70,70);
+  background: rgba(0,0,0,0.3);
   color: white;
+  text-align: center;
+  min-height: 182px;
+  position: relative;
 }
-
-#event .event-btns {
+#message .event-btns {
   position: absolute;
   width: 100%;
   bottom: 20px;
+}
+
+#chat .chathead {
+  color: white;
+}
+
+#empty {
+  color: white;
+  background: rgb(70,70,70);
+  background: rgba(0,0,0,0.3);
+  text-align: center;
+  border-radius: 15px;
+}
+#empty h3 {
+    margin: 0;
+    padding: 15px;
 }
 
 .zero-width {
