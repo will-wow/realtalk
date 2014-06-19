@@ -127,26 +127,10 @@ Refactor for OOP
     /**
      * Users View
      */
-    function UsersView(showMessage) {
-        this._showMessage = showMessage;
+    function UsersView(userClickHandler) {
+        this._userClickHandler = userClickHandler;
     }
     UsersView.prototype = {
-        // Click handler for calling a user
-        _userClickHandler: function (username) {
-            var showMessage = this._showMessage;
-            return function() {
-                // Show the calling event box
-                showMessage('Calling <strong>' + username + '</strong>...', '',
-                null,
-                // Allow user to cancel call
-                new Btn('Cancel', function() {
-                    socket.emit('call-cancel', username);
-                    //TODO: close message & resize
-                }));
-    
-                socket.emit('call', username);
-            };
-        },
         // Populate the userlist
         populateList: function (users) {
             // set up empty jQuery object to hold users
@@ -515,6 +499,21 @@ Refactor for OOP
     ///////////////////
     // User Handlers
     ///////////////////
+    // Click handler for calling a user
+    function userClickHandler (username) {
+        return function () {
+            // Show the calling event box
+            msgNew('Calling <strong>' + username + '</strong>...', '',
+                null,
+                // Allow user to cancel call
+                new Btn('Cancel', function() {
+                    socket.emit('cancelRing', username);
+                    msgClose();
+                }));
+
+            socket.emit('call', username);
+        };
+    }
     function userlistHandler(users) {
         //TODO
     }
@@ -631,6 +630,9 @@ Refactor for OOP
                 msgClose();
             }));
     }
+    function cancelRingHandler() {
+        msgClose();
+    }
     /**
      * Handle a pick-up event
      */
@@ -643,7 +645,9 @@ Refactor for OOP
      * Handle an event where the other user was unavailable
      */
     function unavailableHandler(username) {
-        msgNew(username + ' was unavailable.', '', new Btn('OK', msgClose));
+        msgNew(username + ' was unavailable.', '', new Btn('OK', function () {
+            msgClose();
+        }));
     }
     
     ///////////////////
@@ -720,7 +724,7 @@ Refactor for OOP
         messageModel = new MessageModel(),
         messageView = new MessageView(),
         usersModel = new UsersModel(),
-        usersView = new UsersView(msgNew);
+        usersView = new UsersView(userClickHandler);
         
         //Error handler
         socket.on('err', errorHandler);
@@ -729,24 +733,25 @@ Refactor for OOP
         //  User Events
         ////////////////////////////
         // Receive userlist
-        socket.on('userlist', function (users) {
-            console.log('userlist');
-    
-            // save userarray
-            usersModel._users = users;
-            // populate the userlist
-            usersView.populateList(usersModel.getUsers());
-        });
-        // Add a user to the list
-        socket.on('userIn', function (user) {
-            userInHandler(user.name, user.available);
-        });
-        // Remove a user from the list
-        socket.on('userOut', userOutHandler);
-        // Remove a user from the list
-        socket.on('userAvailability', function (user) {
-            userAvailabilityHandler(user.username, user.available);
-        });
+        socket
+            .on('userlist', function (users) {
+                console.log('userlist');
+        
+                // save userarray
+                usersModel._users = users;
+                // populate the userlist
+                usersView.populateList(usersModel.getUsers());
+            })
+            // Add a user to the list
+            .on('userIn', function (user) {
+                userInHandler(user.name, user.available);
+            })
+            // Remove a user from the list
+            .on('userOut', userOutHandler)
+            // Remove a user from the list
+            .on('userAvailability', function (user) {
+                userAvailabilityHandler(user.username, user.available);
+            });
         
         ////////////////////////////
         //  Chooser Events
@@ -758,6 +763,8 @@ Refactor for OOP
         socket
             //Ring
             .on('ring', ringHandler)
+            //Cancel Ring
+            .on('cancelRing', cancelRingHandler)
             //unavailable
             .on('unavailable', unavailableHandler)
             //startchat
