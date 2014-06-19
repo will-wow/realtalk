@@ -136,17 +136,23 @@ Refactor for OOP
             // set up empty jQuery object to hold users
             var users$ = $(),
                 i, user$,
-                username, clickHandler;
+                username;
             
             // Loop through users array and add each one to DOM
             for (i in users) {
                 if (users.hasOwnProperty(i)) {
+                    // get the users's name
                     username = users[i].name;
+                    // set up their list item
+                    user$ = $('<li><a>' + username + '</a></li>');
                     // set up the click handler for the user
-                    clickHandler = this._userClickHandler(username);
-                    // build the user <p>, with the click handler
-                    user$ = $('<li><a>' + username + '</a></li>').click(clickHandler);
-                    // append to the user object
+                    user$.click(this._userClickHandler(username));
+                    
+                    // If unavailable, mark it
+                    if (!users[i].available) 
+                        user$.addClass("user-unavailable");
+                        
+                    // append user to the users object
                     users$ = users$.add(user$);
                 }
             }
@@ -171,19 +177,20 @@ Refactor for OOP
         this._yesBtn = null;
         this._noBtn = null;
         // Message type
-        this._type = null;
+        this._type = this.types.UNAVAILABLE;
     }
     MessageModel.prototype = {
-        
         /**
          * Enum of type options
          * Not sure if this will be useful
          */
         types: {
+            UNAVAILABLE: true,
             CALL: false,
             RING: false,
-            UNAVAILABLE: true,
-            ERR: false
+            HUNGUP: true,
+            ERR: true,
+            CLOSED: true
         },
         /**
          * Return the state of the message model
@@ -200,7 +207,7 @@ Refactor for OOP
         /**
          * Return the current message type
          */
-        getType: function () {
+        canReplace: function () {
             return this._type;
         },
         /**
@@ -333,6 +340,8 @@ Refactor for OOP
             this.emptyChat('other');
         },
         startChat: function (username) {
+            this.emptyChat('me');
+            this.emptyChat('other');
             this.setChattingWith(username);
             this.setOpen(true);
         },
@@ -444,6 +453,8 @@ Refactor for OOP
         startChat: function (username) {
             // Clear chatting var
             this._setHead('other',username);
+            this.updateChat('me','');
+            this.updateChat('other','');
         },
         /**
          * Do the work when a chat ends
@@ -471,15 +482,8 @@ Refactor for OOP
      */
     function EmptyView() {
         this._empty = $('#empty');
+        this.setSize = setSize(this._empty, '','col-xs-12','zero-width');
     }
-    EmptyView.prototype = {
-        setSize: function (other1, other2) {
-            if ((other1 || other2))
-                this._empty.hide();
-            else
-                this._empty.show();
-        }
-    };
     
     
     ////////////////////////////
@@ -494,7 +498,7 @@ Refactor for OOP
         
         chatView.setSize(chatOpen, messageOpen);
         messageView.setSize(messageOpen, chatOpen);
-        emptyView.setSize(chatOpen, messageOpen);
+        emptyView.setSize(true, chatOpen || messageOpen);
     }
     ///////////////////
     // User Handlers
@@ -503,7 +507,8 @@ Refactor for OOP
     function userClickHandler (username) {
         return function () {
             // Show the calling event box
-            msgNew('Calling <strong>' + username + '</strong>...', '',
+            msgNew(messageModel.types.CALL,
+                'Calling <strong>' + username + '</strong>...', '',
                 null,
                 // Allow user to cancel call
                 new Btn('Cancel', function() {
@@ -537,9 +542,9 @@ Refactor for OOP
      * Open a new message
      * @param {boolean} dontSetSizes=false - If true, don't run setSizes
      */
-    function msgNew(header, text, yesBtn, noBtn, dontSetSizes) {
+    function msgNew(type, header, text, yesBtn, noBtn, dontSetSizes) {
         // Send the message to the Model
-        messageModel.setMessage(true, messageModel.types[''], header, text, yesBtn, noBtn);
+        messageModel.setMessage(true, type, header, text, yesBtn, noBtn);
         // Push the message to the View
         messageView.setUpMsg(messageModel.getMessage());
         
@@ -555,7 +560,7 @@ Refactor for OOP
      */
     function msgClose(dontSetSizes) {
         // Clear the model
-        messageModel.setMessage(false);
+        messageModel.setMessage(false, messageModel.types.CLOSED);
         // Push the message to the View
         messageView.setUpMsg(messageModel.getMessage());
         // Update the box sizes
@@ -603,32 +608,43 @@ Refactor for OOP
      * Handle a hang-up from the other user 
      */
     function hungUpHandler(username) {
-        // Display event about hangup
-        // Don't reset the sizes (done next)
-        msgNew(username + " has left the chat.", "You can choose someone else to chat with.",
-            // Add OK button that closes the message
-            new Btn("OK",function () {
-                // close the message
-                msgClose();
-                }),true);
-        // End Chat
+        // Show a chatend message if the current message is replaceable
+        if (messageModel.canReplace()) {
+            // Display event about hangup
+            // Don't reset the sizes (done next)
+            msgNew(messageModel.types.HUNGUP, 
+                username + " has left the chat.", "You can choose someone else to chat with.",
+                // Add OK button that closes the message
+                new Btn("OK",function () {
+                    // close the message
+                    msgClose();
+                    }),true);
+        } 
+        // End Chat either way
         chatEnd();
     }
     /**
      * Handle a ring event 
      */
     function ringHandler(username) {
-        // Show the Ring event box
-        msgNew('<strong>' + username + '</strong> wants to chat!', '',
-            // Click Chat to start chat
-            new Btn('Chat', function() {
-                socket.emit('pickup', username);
-            }),
-            // Click Busy to ignore
-            new Btn('Busy', function() {
-                socket.emit('unavailable', username);
-                msgClose();
-            }));
+        // if the current message is replaceable, accept the ring
+        if (messageModel.canReplace()) {
+            msgNew(messageModel.types.RING,
+                '<strong>' + username + '</strong> wants to chat!', '',
+                // Click Chat to start chat
+                new Btn('Chat', function() {
+                    socket.emit('pickup', username);
+                }),
+                // Click Busy to ignore
+                new Btn('Busy', function() {
+                    socket.emit('unavailable', username);
+                    msgClose();
+                }));
+        // If the current message is not replaceable
+        } else {
+            // Respond with unavailable
+            socket.emit('unavailable', username);
+        }
     }
     function cancelRingHandler() {
         msgClose();
@@ -645,7 +661,8 @@ Refactor for OOP
      * Handle an event where the other user was unavailable
      */
     function unavailableHandler(username) {
-        msgNew(username + ' was unavailable.', '', new Btn('OK', function () {
+        msgNew(messageModel.types.UNAVAILABLE,
+            username + ' was unavailable.', '', new Btn('OK', function () {
             msgClose();
         }));
     }
@@ -664,8 +681,20 @@ Refactor for OOP
         // Clear the input box
         input$.val(' ');
         // Update the chatbox
-        console.log(chatModel.getCurrentText('me'));
         chatView.updateChat('me', chatModel.getCurrentText('me'));
+    }
+    /**
+     * Listen for keypresses
+     */ 
+    function keyHandler(e) {
+        var key = e.which;
+        
+        if (key === 13) {
+            chatModel.emptyChat('me');
+            chatView.updateChat('me', chatModel.getCurrentText('me'));
+            socket.emit('clear');
+            e.preventDefault();
+       }
     }
     /**
      * Add a character to the #other box
@@ -697,7 +726,8 @@ Refactor for OOP
      * Bring up a message on a server error
      */ 
     function errorHandler() {
-        msgNew("Authentication Error", "Please sign in before chatting.",
+        msgNew(messageModel.types.ERR,
+            "Authentication Error", "Please sign in before chatting.",
             new Btn("OK", function() {
                 window.location.replace('/');
             })
@@ -740,7 +770,7 @@ Refactor for OOP
         // Receive userlist
         socket
             .on('userlist', function (users) {
-                console.log('userlist');
+                console.log('ready');
         
                 // save userarray
                 usersModel._users = users;
@@ -784,7 +814,8 @@ Refactor for OOP
     
         // User types character
         $('#input').on("textchange", inputHandler);
-    
+        $('#input').on("keydown", keyHandler);
+        
         // Receive input
         socket
             // Receive text

@@ -10,7 +10,7 @@ body {
   padding: 40px 15px;
 }
 
-.section {
+.animate {
   -webkit-transition: width 0.3s ease;
   -moz-transition: width 0.3s ease;
   -o-transition: width 0.3s ease;
@@ -35,16 +35,8 @@ body {
   color: white;
 }
 
-#empty {
-  color: white;
-  background: rgb(70,70,70);
-  background: rgba(0,0,0,0.3);
-  text-align: center;
-  border-radius: 15px;
-}
-#empty h3 {
-    margin: 0;
-    padding: 15px;
+.user-unavailable {
+    text-decoration:line-through;
 }
 
 .zero-width {
@@ -52,4 +44,24 @@ body {
   overflow: hidden;
   padding:0;
   margin: 0;
+}
+
+#empty {
+  color: white;
+  background: rgb(70,70,70);
+  background: rgba(0,0,0,0.3);
+  text-align: center;
+  max-height: 182px;
+  overflow: hidden;
+}
+#empty h3 {
+    margin: 0;
+    padding: 15px;
+}
+
+/* Small Devices, Tablets */
+@media only screen and (min-width : 768px) {
+    #empty {
+      border-radius: 15px;
+    }
 }
