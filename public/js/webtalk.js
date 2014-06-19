@@ -664,6 +664,7 @@ Refactor for OOP
         // Clear the input box
         input$.val(' ');
         // Update the chatbox
+        console.log(chatModel.getCurrentText('me'));
         chatView.updateChat('me', chatModel.getCurrentText('me'));
     }
     /**
@@ -706,7 +707,11 @@ Refactor for OOP
      * Focus on the inputBox
      */ 
     function inputFocus () {
-        $('#input').focus();
+        $('#input')
+            // Focus on the input box
+            .focus()
+            // Reset the val after focus to put the cursor on the 2nd char
+            .val(' ');
     }
     /**
      * Collapse the nav bar
