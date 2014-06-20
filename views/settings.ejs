@@ -55,17 +55,21 @@
         <div class="col-sm-6">
           <div class="well">
             <h3><span class="fa fa-user"></span>Local</h3>
-          <% if (user.local.email) { %>
+          <!-- check if the user has this token (is the user authenticated with this social account) -->
+				  <% if (user.local.email) { %>
             <p>
               <strong>id</strong>: <%= user._id %><br>
               <strong>email</strong>: <%= user.local.email %><br>
               <strong>password</strong>: <%= user.local.password %>
             </p>
             <a href="/unlink/local" class="btn btn-default">Unlink</a>
-           <% } else { %> 
+          <% } else { %> 
             <a href="/connect/local" class="btn btn-default">Connect Local</a>
+          <% } %>
           </div>
         </div>
+        <!-- END LOCAL -->
+        
         <!-- FACEBOOK INFORMATION -->
         <div class="col-sm-6">
         	<div class="well">
@@ -85,6 +89,7 @@
           <% } %>
         	</div>
         </div>
+        <!-- END FACEBOOK -->
         
         <!-- TWITTER INFORMATION -->
     		<div class="col-sm-6">
@@ -104,9 +109,9 @@
     				<% } else { %>
     					<a href="/connect/twitter" class="btn btn-info">Connect Twitter</a>
     				<% } %>
-    
     			</div>
     		</div>
+        <!-- END TWITTER -->
         
         <!-- GOOGLE INFORMATION -->
         <div class="col-sm-6">
@@ -127,6 +132,7 @@
             <% } %>
           </div>
       	</div>
+      	<!-- END GOOGLE -->
       	
       </div>
     </div>
