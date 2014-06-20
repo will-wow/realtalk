@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="Will Lee-Wagner">
 
-    <title>Login | Webtalk</title>
+    <title>Connect | Webtalk</title>
 
     <!-- Bootstrap core CSS -->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
@@ -50,24 +50,23 @@
       	<div class="alert alert-danger"><%= message %></div>
       <% } %>
       
-      <!-- LOGIN FORM -->
-      <form class="form-sign" action="/login" method="post" role="form">
-        <h3>Login to start chatting!</h3>
+      <!-- CONNECT FORM -->
+      <form class="form-sign" action="/connect/local" method="post" role="form">
+        <h3>Connect your email and password for easy signin</h3>
         <div class="form-group">
-    			<label>Email</label>
-    			<input type="text" class="form-control" name="email">
-    		</div>
-    		<div class="form-group">
-    			<label>Password</label>
-    			<input type="password" class="form-control" name="password">
-    		</div>
-        <button type="submit" class="btn btn-primary btn-lg">Signup</button>
+          <label>Email</label>
+          <input type="text" class="form-control" name="email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" class="form-control" name="password">
+      </div>
+        <button type="submit" class="btn btn-primary btn-lg">Connect</button>
       </form>
       
       <hr>
 
-    	<p>Need an account? <a href="/signup">Signup</a></p>
-    	<p>Or go <a href="/">home</a>.</p>
+    	<p><a href="/settings">Go back to settings</a></p>
     </div>
   </body>
 </html>

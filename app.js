@@ -13,6 +13,7 @@ var express     = require('express'),
     flash       = require('connect-flash'),
     configDB    = process.env.MONGO_URL || locals.MONGO_URL;
 
+
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
 
@@ -37,18 +38,19 @@ app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(app.router);
-
 // development only
 if ('development' == app.get('env')) {
     app.use(express.errorHandler());
 }
 
 // routes ======================================================================
-require('./routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+// load routes and pass in app and fully configured passport
+require('./routes.js')(app, passport); 
 
+// Spin up http server =========================================================
 var server = http.createServer(app).listen(app.get('port'), function() {
     console.log('Express server listening on port ' + app.get('port'));
 });
-
+// Start up socket server ======================================================
 var chatServer = require('./lib/chat_server');
 chatServer.listen(server, sessionStore, cookieParser, passport, key, secret);
