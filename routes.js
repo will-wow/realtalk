@@ -41,7 +41,37 @@ module.exports = function(app, passport) {
     failureRedirect : '/signup', // redirect back to the signup page if there is an error
     failureFlash : true // allow flash messages
 	}));
+  
+  // =====================================
+	// FACEBOOK ROUTES =====================
+	// =====================================
+	// route for facebook authentication and login
+	app.get('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
 
+	// handle the callback after facebook has authenticated the user
+	app.get('/auth/facebook/callback',
+		passport.authenticate('facebook', {
+			successRedirect : '/settings',
+			failureRedirect : '/'
+		}));
+  
+  // =====================================
+  // GOOGLE ROUTES =======================
+  // =====================================
+  // send to google to do the authentication
+  // profile gets us their basic information including their name
+  // email gets their emails
+  app.get('/auth/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+  }));
+
+  // the callback after google has authenticated the user
+  app.get('/auth/google/callback',
+  passport.authenticate('google', {
+    successRedirect: '/profile',
+    failureRedirect: '/'
+  }));
+  
 	// =====================================
 	// PROFILE SECTION =====================
 	// =====================================
@@ -52,7 +82,7 @@ module.exports = function(app, passport) {
 			user : req.user // get the user out of session and pass to template
 		});
 	});
-
+  
 	// =====================================
 	// LOGOUT ==============================
 	// =====================================
