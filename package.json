@@ -1,6 +1,6 @@
 {
   "name": "webtalk",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "start": "node app.js"
@@ -10,7 +10,15 @@
     "connect": "*",
     "socket.io": "~1.0.4",
     "session.socket.io": "*",
-    "ejs": "*"
+    "ejs": "*",
+    "mongoose" : "~3.8.1", 			
+    "passport" : "~0.1.17", 		
+    "passport-local" : "~0.1.6", 	
+    "passport-facebook" : "~1.0.2", 
+    "passport-twitter" : "~1.0.2", 	
+    "passport-google-oauth" : "~0.1.5",
+    "connect-flash" : "~0.1.1", 	
+    "bcrypt-nodejs" : "latest" 		
   },
   "subdomain": "webtalk",
   "domains": [
