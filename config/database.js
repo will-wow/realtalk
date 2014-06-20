@@ -1,4 +1,4 @@
 // config/database.js
 module.exports = {
-	'url' : 'mongodb://' + process.env.IP + '/users'
+	'url' : process.env.MONGO_URL
 };

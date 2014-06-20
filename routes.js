@@ -60,6 +60,20 @@ module.exports = function(app, passport) {
 		req.logout();
 		res.redirect('/');
 	});
+	
+	// =====================================
+	// ABOUT ===============================
+	// =====================================
+  app.get('/about',function (req, res) {
+     res.render('about');
+  });
+  
+  // =====================================
+	// CHAT ================================
+	// =====================================
+  app.get('/chat', isLoggedIn, function (req, res) {
+    res.render('chat', {username: req.session.user});
+  });
 };
 
 // route middleware to make sure a user is logged in

@@ -44,15 +44,25 @@
     
     
     <div class="container body">
+      <div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+        <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+      </div>
+      
       <div class="row">
-          <div class="col-md-12">
-            <h2>This is the settings page.</h2>
-            <p>If you're logged in, you can see this.</p>
+      
+      	<!-- LOCAL INFORMATION -->
+          <div class="col-sm-6">
+            <div class="well">
+              <h3><span class="fa fa-user"></span>Local</h3>
+              <p>
+                <strong>id</strong>: <%= user._id %><br>
+                <strong>email</strong>: <%= user.local.email %><br>
+                <strong>password</strong>: <%= user.local.password %>
+              </p>
           </div>
+      	</div>
       </div>
     </div>
-     
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
   </body>
 </html>
