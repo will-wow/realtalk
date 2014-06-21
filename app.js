@@ -2,20 +2,16 @@ var express     = require('express'),
     connect     = require('connect'),
     http        = require('http'),
     path        = require('path'),
-    key         = process.env.KEY || locals.KEY,
-    secret      = process.env.SECRET || locals.SECRET,
     cookieParser = express.cookieParser,
     sessionStore = new connect.middleware.session.MemoryStore(),
     app         = express(),
     mongoose    = require('mongoose'),
     passport    = require('passport'),
     flash       = require('connect-flash'),
-    configDB    = process.env.MONGO_URL || locals.MONGO_URL,
-    locals;
-    
-    // Get locals file, if it exists
-    try {locals = require('./config/locals');}
-    catch(e) {locals=null;}
+    locals      = require('./config/get_locals'),
+    configDB    = locals.URLS.MONGO,
+    key         = locals.COOKIES.KEY,
+    secret      = locals.COOKIES.SECRET;
 
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database

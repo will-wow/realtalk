@@ -1,26 +1,25 @@
 // Get locals file, if it exists
-try {var locals = require('./config/locals');}
-catch(e) {locals=null;}
+var locals = require('./get_locals');
 
 // expose our config directly to our application using module.exports
 module.exports = {
 
   'facebookAuth': {
-    'clientID'    : process.env.FACEBOOK_ID || locals.FACEBOOK_ID,
-    'clientSecret': process.env.FACEBOOK_SECRET || locals.FACEBOOK_SECRET,
-    'callbackURL' : (process.env.URL || locals.URL) + '/auth/facebook/callback'
+    'clientID'    : locals.FACEBOOK.ID,
+    'clientSecret': locals.FACEBOOK.SECRET,
+    'callbackURL' : locals.URLS.AUTH + '/auth/facebook/callback'
   },
 
   'twitterAuth': {
-    'consumerKey'   : process.env.TWITTER_ID || locals.TWITTER_ID,
-    'consumerSecret': process.env.TWITTER_SECRET || locals.TWITTER_SECRET,
-    'callbackURL'   : (process.env.URL || locals.URL) + '/auth/facebook/callback'
+    'consumerKey'   : locals.TWITTER.ID,
+    'consumerSecret': locals.TWITTER.SECRET,
+    'callbackURL'   : locals.URLS.AUTH + '/auth/twitter/callback'
   },
 
   'googleAuth': {
-    'clientID'    : process.env.GOOGLE_ID || locals.GOOGLE_ID,
-    'clientSecret': process.env.GOOGLE_SECRET || locals.GOOGLE_SECRET,
-    'callbackURL' : (process.env.URL || locals.URL) + '/auth/facebook/callback'
+    'clientID'    : locals.GOOGLE.ID,
+    'clientSecret': locals.GOOGLE.SECRET,
+    'callbackURL' : locals.URLS.AUTH + '/auth/google/callback'
   }
 
 };
