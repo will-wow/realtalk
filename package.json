@@ -1,29 +1,27 @@
 {
   "name": "webtalk",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "start": "node app.js"
   },
   "dependencies": {
+    "bcrypt-nodejs" : "0.0.3",
+    "connect-flash" : "0.1.1", 	
     "express": "3.5.1",
-    "connect": "*",
-    "socket.io": "~1.0.4",
-    "passport.socketio": "latest",
-    "ejs": "*",
-    "mongoose" : "~3.8.1", 			
-    "passport" : "latest", 		
-    "passport-local" : "latest", 	
-    "passport-facebook" : "latest", 
-    "passport-twitter" : "latest", 	
-    "passport-google-oauth" : "latest",
-    "connect-flash" : "~0.1.1", 	
-    "bcrypt-nodejs" : "latest" 		
+    "ejs": "1.0.0",
+    "mongoose" : "3.8.12", 			
+    "passport" : "0.2.0", 		
+    "passport-local" : "1.0.0", 	
+    "passport-facebook" : "1.0.3", 
+    "passport-twitter" : "1.0.2", 	
+    "passport-google-oauth" : "0.1.5",
+    "passport.socketio": "3.2.0",
+    "socket.io": "1.0.6"
   },
   "subdomain": "webtalk",
   "domains": [
-    "webtalk.whentheresawill.net",
-    "www.webtalk.whenthereawill.net"
+    "webtalk.whentheresawill.net"
   ],
   "engines": {
     "node": "0.10.x"
