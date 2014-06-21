@@ -1,4 +1,6 @@
-var locals = require('./locals');
+// Get locals file, if it exists
+try {var locals = require('./config/locals');}
+catch(e) {locals=null;}
 
 // expose our config directly to our application using module.exports
 module.exports = {

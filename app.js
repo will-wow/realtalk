@@ -12,12 +12,10 @@ var express     = require('express'),
     flash       = require('connect-flash'),
     configDB    = process.env.MONGO_URL || locals.MONGO_URL,
     locals;
-    try {
-        locals = require('./config/locals'),
-    }
-    except(e) {
-        locals=null;
-    }
+    
+    // Get locals file, if it exists
+    try {locals = require('./config/locals');}
+    catch(e) {locals=null;}
 
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
