@@ -18,7 +18,7 @@ if (locals) {
     },
     URLS: {
       MONGO: process.env.MONGO_URL,
-      CALLBACK: process.env.AUTH_URL
+      AUTH: process.env.AUTH_URL
     },
     FACEBOOK: {
       ID: process.env.FACEBOOK_ID,
