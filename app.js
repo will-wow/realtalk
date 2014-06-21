@@ -2,11 +2,6 @@ var express     = require('express'),
     connect     = require('connect'),
     http        = require('http'),
     path        = require('path'),
-    try{
-    locals      = require('./config/locals'),
-    }
-    except(e) {//y 
-    locals=null;}
     key         = process.env.KEY || locals.KEY,
     secret      = process.env.SECRET || locals.SECRET,
     cookieParser = express.cookieParser,
@@ -15,8 +10,14 @@ var express     = require('express'),
     mongoose    = require('mongoose'),
     passport    = require('passport'),
     flash       = require('connect-flash'),
-    configDB    = process.env.MONGO_URL || locals.MONGO_URL;
-
+    configDB    = process.env.MONGO_URL || locals.MONGO_URL,
+    locals;
+    try {
+        locals = require('./config/locals'),
+    }
+    except(e) {
+        locals=null;
+    }
 
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
