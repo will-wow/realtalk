@@ -2,7 +2,11 @@ var express     = require('express'),
     connect     = require('connect'),
     http        = require('http'),
     path        = require('path'),
+    try{
     locals      = require('./config/locals'),
+    }
+    except(e) {//y 
+    locals=null;}
     key         = process.env.KEY || locals.KEY,
     secret      = process.env.SECRET || locals.SECRET,
     cookieParser = express.cookieParser,
