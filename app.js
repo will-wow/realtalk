@@ -18,10 +18,10 @@ mongoose.connect(configDB); // connect to our database
 require('./config/passport')(passport); // pass passport for configuration
 
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 8080);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-//app.use(express.favicon());
+app.use(express.favicon(path.join(__dirname, 'public/img/favicon.img')));
 app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
@@ -47,7 +47,7 @@ require('./routes.js')(app, passport);
 
 // Spin up http server =========================================================
 var server = http.createServer(app).listen(app.get('port'), function() {
-    console.log('Express server listening on port ' + app.get('port'));
+    console.log('WebTalk is listening on port ' + app.get('port'));
 });
 // Start up socket server ======================================================
 var chatServer = require('./lib/chat_server');
