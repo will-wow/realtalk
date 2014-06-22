@@ -1,9 +1,10 @@
 body {
-  padding-top: 50px;
-  background-image:url('../img/cinque_terre_bk.jpg');
-  background-repeat:no-repeat;
-  background-attachment:fixed;
-  background-position:center; 
+    padding-top: 50px;
+    height: 100%;
+    background-image:url('http://whentheresawill.net/static/realtalk/img/cinque_terre_bk.jpg');
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    background-position:center top; 
 }
 
 .chatcontainer {

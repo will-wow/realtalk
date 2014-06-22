@@ -1,6 +1,6 @@
 {
-  "name": "webtalk",
-  "version": "0.2.1",
+  "name": "realtalk",
+  "version": "0.2.2",
   "private": true,
   "scripts": {
     "start": "node app.js"
@@ -19,9 +19,9 @@
     "passport.socketio": "3.2.0",
     "socket.io": "1.0.6"
   },
-  "subdomain": "webtalk",
+  "subdomain": "realtalk",
   "domains": [
-    "webtalk.whentheresawill.net"
+    "realtalk.whentheresawill.net"
   ],
   "engines": {
     "node": "0.10.x"

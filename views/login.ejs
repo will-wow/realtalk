@@ -7,12 +7,14 @@
     <meta name="description" content="">
     <meta name="author" content="Will Lee-Wagner">
 
-    <title>Login | Webtalk</title>
+    <title>login | realtalk.</title>
 
     <!-- Bootstrap core CSS -->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
+    <link href='//fonts.googleapis.com/css?family=Cutive' rel='stylesheet' type='text/css'>
+    <link href="css/base.css" rel="stylesheet">
     <link href="css/sign.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -31,14 +33,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">Webtalk</a>
+          <span class="tw"><a class="navbar-brand" href="/">realtalk.</a></span>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="chat">Chat</a></li>
-            <li><a href="about">About</a></li>
-            <li><a href="settings">Settings</a></li>
-            <li class="active"><a href="/">Login</a></li>
+            <li><a href="chat">Talk</a></li>
+            <li class="active"><a href="/login">Login</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -52,7 +52,7 @@
       
       <!-- LOGIN FORM -->
       <form class="form-sign" action="/login" method="post" role="form">
-        <h3>Login to start chatting!</h3>
+        <h3>Login to start talking!</h3>
         <div class="form-group">
     			<label>Email</label>
     			<input type="text" class="form-control" name="email">
@@ -63,11 +63,26 @@
     		</div>
         <button type="submit" class="btn btn-primary btn-lg">Signup</button>
       </form>
-      
-      <hr>
-
-    	<p>Need an account? <a href="/signup">Signup</a></p>
-    	<p>Or go <a href="/">home</a>.</p>
     </div>
+    
+    <!-- Footer -->
+    <div id="footer">
+      <hr>
+      <div class="container">
+        <div class="col-sm-4">
+          <a href="https://www.nodejitsu.com/">powered by Nodejitsu</a>
+        </div>
+        <div class="col-sm-4">
+          <a id="contact">Email the dev!</a>
+        </div>
+        <div class="col-sm-4">Code licensed under MIT
+          <br>&#169; Will Lee-Wagner</div>
+      </div>
+    </div>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.0.4.js"></script>
+    <script language="javascript" type="text/javascript" src="js/plugins/jquery.willpop.min.js"></script>
   </body>
 </html>

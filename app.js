@@ -21,7 +21,7 @@ require('./config/passport')(passport); // pass passport for configuration
 app.set('port', process.env.PORT || 8080);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(express.favicon(path.join(__dirname, 'public/img/favicon.img')));
+app.use(express.favicon(path.join(__dirname, 'public/img/favicon.ico')));
 app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
