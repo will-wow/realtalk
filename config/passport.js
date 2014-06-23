@@ -12,6 +12,91 @@ var User = require('../lib/models/user');
 // load the auth variables
 var configAuth = require('./auth');
 
+
+/**
+ * Check if a string is an email
+ * @param: {String} email - The text to check
+ * @return: {boolean} True if email is an email
+ */
+function emailValidate(email) {
+  // For now, return true if there is an @
+  return (email.indexOf('@') !== -1);
+}
+
+/**
+ * Merge new data with existing user
+ * @param: {User} user - The user to check against
+ * @param: {Object} The info to check
+ */
+function addInfo(user, info) {
+  var part;
+  
+  for (part in info) {
+    if (info.hasOwnProperty(part)) {
+      if (info[part] && !user[part]) user[part] = info[part];
+    }
+  }
+}
+
+// Update a user w/ FB info
+function facebookUser(user, token, profile, username) {
+  user.facebook.token  = token;
+  // Add info to user, if it's new
+  addInfo(user,{
+    username: username,
+    email: profile.emails[0].value,
+    givenName: profile.name.givenName,
+    familyName: profile.name.familyName
+  });
+}
+// Update a user w/ info
+function twitterUser(user, token, profile, username) {
+  user.twitter.token  = token;
+  // Add info to user, if it's new
+  addInfo(user,{
+    username:  username,
+    givenName: profile.name.displayName
+  });
+}
+function googleUser(user, token, profile, username) {
+  user.google.token  = token;
+  // Add info to user, if it's new
+  addInfo(user,{
+    username:  username,
+    email:  profile.emails[0].value,
+    givenName: profile.name.displayName,
+  });
+}
+
+/**
+ * Generate a unique username from a given one
+ * @param: {String} username - given name
+ * @param: {String} callback - callback to pass the name to
+ * @param: {String || integer} n - Number to append to name. Start with ''
+ */
+function uniqueName(username, callback, n) {
+  User.findOne({
+    'username': username + n
+  }, function (err, user) {
+    // If user exists:
+    if (user) {
+      // If this was the fisrt try (and n is blank)
+      if (!n) {
+        // Call with n as 1 (so user becomes user1)
+        uniqueName(username, callback, 1);
+      } else {
+        // Call with n++
+        uniqueName(username, callback, n+1);
+      }
+    // when username + n is unique
+    } else {
+      // pass the new username to the callback
+      callback(username + n);
+    }
+      
+  });
+}
+
 // expose this function to our app using module.exports
 module.exports = function(passport) {
 
@@ -37,13 +122,10 @@ module.exports = function(passport) {
   // LOCAL SIGNUP ============================================================
   // =========================================================================
   passport.use('local-signup', new LocalStrategy({
-    // by default, local strategy uses username and password, we will override with email
-    usernameField: 'email',
-    passwordField: 'password',
     passReqToCallback: true // allows us to pass back the entire request to the callback
   },
 
-  function(req, email, password, done) {
+  function(req, username, password, done) {
 
     // asynchronous
     // User.findOne wont fire unless data is sent back
@@ -52,23 +134,27 @@ module.exports = function(passport) {
       // find a user whose email is the same as the forms email
       // we are checking to see if the user trying to login already exists
       User.findOne({
-        'local.email': email
+        'username': username
       }, function(err, user) {
         // if there are any errors, return the error
         if (err) return done(err);
 
-        // check to see if theres already a user with that email
+        // check to see if theres already a user with that name
         if (user) {
-          return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+          return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
         }
         else {
 
-          // if there is no user with that email
+          // if there is no user with that name
           // create the user
           var newUser = new User();
 
           // set the user's local credentials
-          newUser.local.email = email;
+          newUser.username = username;
+          // If the username looks like an email, add that in
+          if (emailValidate(username))
+            newUser.email = username;
+          // hash the password
           newUser.local.password = newUser.generateHash(password);
 
           // save the user
@@ -77,11 +163,8 @@ module.exports = function(passport) {
             return done(null, newUser);
           });
         }
-
       });
-
     });
-
   }));
 
   // =========================================================================
@@ -89,17 +172,15 @@ module.exports = function(passport) {
   // =========================================================================
   passport.use('local-login', new LocalStrategy({
     // by default, local strategy uses username and password, we will override with email
-    usernameField: 'email',
-    passwordField: 'password',
     passReqToCallback: true // allows us to pass back the entire request to the callback
   },
 
-  function(req, email, password, done) { // callback with email and password from our form
+  function(req, username, password, done) { // callback with email and password from our form
 
     // find a user whose email is the same as the forms email
     // we are checking to see if the user trying to login already exists
     User.findOne({
-      'local.email': email
+      'username': username
     }, function(err, user) {
       // if there are any errors, return the error before anything else
       if (err) return done(err);
@@ -151,9 +232,7 @@ module.exports = function(passport) {
             // if there is a user id already but no token (user was linked at one point and then removed)
             // just add our token and profile information
             if (!user.facebook.token) {
-              user.facebook.token  = token;
-              user.facebook.name   = profile.name.givenName + ' ' + profile.name.familyName; 
-              user.facebook.email  = profile.emails[0].value;
+              facebookUser(user, token, profile);
             
               user.save(function(err) {
                 if (err) throw err;
@@ -168,17 +247,19 @@ module.exports = function(passport) {
             var newUser = new User();
     
             // set all of the facebook information in our user model
-            newUser.facebook.id     = profile.id; // set the users facebook id
-            newUser.facebook.token  = token; // we will save the token that facebook provides to the user
-            newUser.facebook.name   = profile.name.givenName + ' ' + profile.name.familyName; // look at the passport user profile to see how names are returned
-            newUser.facebook.email  = profile.emails[0].value; // facebook can return multiple emails so we'll take the first
+            newUser.facebook.id = profile.id; // set the users facebook id
+            
+            // Generate a unique username, then save the user
+            uniqueName(profile.emails[0].value, function (username) {
+              facebookUser(newUser, token, profile, username);
     
-            // save our user to the database
-            newUser.save(function(err) {
-              if (err) throw err;
-    
-              // if successful, return the new user
-              return done(null, newUser);
+              // save our user to the database
+              newUser.save(function(err) {
+                if (err) throw err;
+      
+                // if successful, return the new user
+                return done(null, newUser);
+              });
             });
           }
     
@@ -189,9 +270,7 @@ module.exports = function(passport) {
         
         // update the current users facebook credentials
         user.facebook.id = profile.id;
-        user.facebook.token = token;
-        user.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
-        user.facebook.email = profile.emails[0].value;
+        facebookUser(user, token, profile);
         
         // save the user
         user.save(function(err) {
@@ -237,9 +316,7 @@ module.exports = function(passport) {
             // if there is a user id already but no token (user was linked at one point and then removed)
             // just add our token and profile information
             if (!user.twitter.token) {
-              user.twitter.token       = token; 
-              user.twitter.username    = profile.username;
-              user.twitter.displayName = profile.displayName;
+              twitterUser(user, token, profile);
               user.save(function(err) {
                 if (err) throw err;
                 return done(null, user);
@@ -254,16 +331,18 @@ module.exports = function(passport) {
     
             // set all of the twitter information in our user model
             newUser.twitter.id          = profile.id;
-            newUser.twitter.token       = token; 
-            newUser.twitter.username    = profile.username;
-            newUser.twitter.displayName = profile.displayName;
+            
+            // Generate a unique username, then save the user
+            uniqueName(profile.username, function (username) {
+              twitterUser(newUser, token, profile, username);
     
-            // save our user to the database
-            newUser.save(function(err) {
-              if (err) throw err;
-    
-              // if successful, return the new user
-              return done(null, newUser);
+              // save our user to the database
+              newUser.save(function(err) {
+                if (err) throw err;
+      
+                // if successful, return the new user
+                return done(null, newUser);
+              });
             });
           }
     
@@ -274,9 +353,7 @@ module.exports = function(passport) {
         
         // update the current users twitter credentials
         user.twitter.id           = profile.id;
-        user.twitter.token        = token; 
-        user.twitter.username     = profile.username;
-        user.twitter.displayName  = profile.displayName;
+        twitterUser(user, token, profile);
         
         // save the user
         user.save(function(err) {
@@ -290,6 +367,7 @@ module.exports = function(passport) {
   // =========================================================================
   // GOOGLE ==================================================================
   // =========================================================================
+  // Update a user w/ new info
   passport.use(new GoogleStrategy({
   
     clientID: configAuth.googleAuth.clientID,
@@ -318,9 +396,7 @@ module.exports = function(passport) {
             // if there is a user id already but no token (user was linked at one point and then removed)
             // just add our token and profile information
             if (!user.google.token) {
-              user.google.token  = token;
-              user.google.name   = profile.displayName;
-              user.google.email  = profile.emails[0].value; // pull the first email
+              googleUser(user, token, profile);
             
               user.save(function(err) {
                 if (err) throw err;
@@ -337,14 +413,18 @@ module.exports = function(passport) {
     
             // set all of the relevant information
             newUser.google.id     = profile.id;
-            newUser.google.token  = token;
-            newUser.google.name   = profile.displayName;
-            newUser.google.email  = profile.emails[0].value; // pull the first email
+            
+            // Generate a unique username, then save the user
+            uniqueName(profile.emails[0].value, function (username) {
+              googleUser(newUser, token, profile, username);
     
-            // save the user
-            newUser.save(function(err) {
-              if (err) throw err;
-              return done(null, newUser);
+              // save our user to the database
+              newUser.save(function(err) {
+                if (err) throw err;
+      
+                // if successful, return the new user
+                return done(null, newUser);
+              });
             });
           }
         });
@@ -354,9 +434,7 @@ module.exports = function(passport) {
         
         // update the current users twitter credentials
         user.google.id     = profile.id;
-        user.google.token  = token;
-        user.google.name   = profile.displayName;
-        user.google.email  = profile.emails[0].value; // pull the first email
+        googleUser(user, token, profile);
         
         // save the user
         user.save(function(err) {

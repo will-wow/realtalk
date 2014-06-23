@@ -14,6 +14,8 @@ var express     = require('express'),
 
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
+mongoose.connection.once('open', function callback () {console.log('mg');});
+
 
 require('./config/passport')(passport); // pass passport for configuration
 
@@ -43,7 +45,7 @@ if ('development' == app.get('env')) {
 
 // routes ======================================================================
 // load routes and pass in app and fully configured passport
-require('./routes.js')(app, passport); 
+require('./routes')(app, passport); 
 
 // Spin up http server =========================================================
 var server = http.createServer(app).listen(app.get('port'), function() {
