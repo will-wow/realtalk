@@ -45,7 +45,7 @@ function updateUserField(req, field) {
 	// =====================================
 	app.get('/', function(req, res) {
 		console.log('HOME');
-		res.render('index.ejs', {
+		res.render('index', {
       auth: !!req.user,
       title: ''}
 		);
@@ -247,6 +247,7 @@ function updateUserField(req, field) {
 // UPDATE USER =================================================================
 // =============================================================================
   app.post('/settings', isLoggedIn, function (req, res) {
+    updateUserField(req, 'username');
     updateUserField(req, 'email');
     updateUserField(req, 'givenName');
     updateUserField(req, 'middleName');

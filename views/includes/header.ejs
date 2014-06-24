@@ -4,8 +4,11 @@
     <meta name="description" content="">
     <meta name="author" content="Will Lee-Wagner">
     
-    
-
+  <% if (title) { %>
+    <title><%= title %> | realtalk.</title>
+  <% } else { %>
+    <title>realtalk.</title>
+  <% } %>
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
     <link href='//fonts.googleapis.com/css?family=Cutive' rel='stylesheet' type='text/css'>
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->

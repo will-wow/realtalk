@@ -75,6 +75,9 @@ function googleUser(user, token, profile, username) {
  * @param: {String || integer} n - Number to append to name. Start with ''
  */
 function uniqueName(username, callback, n) {
+  // Set an undefined n to blank
+  if (!n) n='';
+  
   User.findOne({
     'username': username + n
   }, function (err, user) {
