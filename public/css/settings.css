@@ -1,3 +1,19 @@
 .body {
-  padding-top: 40px;
+  padding-top: 71px;
+  max-width: 768px;
+}
+
+.user-container {
+
+}
+
+#user-img {
+  margin: 0 auto;
+  display: block;
+}
+
+#user-name {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-bottom: 0;
 }

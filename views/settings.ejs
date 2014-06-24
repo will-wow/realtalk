@@ -12,96 +12,106 @@
     <% include includes/nav %>
     
     <div class="container body">
-      <div class="page-header text-center">
-        <h1><span class="fa fa-user"></span> <%= user.name %></h1>
-        <a href="/logout" class="btn btn-default btn-sm"><span class="fa fa-sign-out"></span><span class="tw"> Logout</span></a>
-      </div>
-      
-      <div class="row">
-      
-      	<!-- LOCAL INFORMATION -->
-        <div class="col-sm-6">
-          <div class="well">
-            <h3><span class="fa fa-user"></span> Local</h3>
-          <!-- check if the user has this token (is the user authenticated with this social account) -->
-				  <% if (user.local.email) { %>
-            <p>
-              <strong>id</strong>: <%= user._id %><br>
-              <strong>email</strong>: <%= user.local.email %><br>
-              <strong>password</strong>: <%= user.local.password %>
-            </p>
-            <a href="/unlink/local" class="btn btn-default">Unlink</a>
-          <% } else { %> 
-            <a href="/connect/local" class="btn btn-default">Connect Local</a>
-          <% } %>
+      <!-- USER FORM -->
+      <form class="form-user" action="/settings" method="post" role="form">
+        <!-- username -->
+        <div class="form-group">
+          <div class="row">
+            <!-- GRAVATAR -->
+            <div class="col-sm-2">
+              <img id="user-img" title="imgae provided by gravatar.com" src='<%= gravatar %>' class="center"/>
+            </div>
+            <!-- USERNAME -->
+            <div class="col-sm-10 ">
+              <label>Username</label>
+              <input type="text" class="form-control" name="username" value="<%= user.username || '' %>">
+            </div>
           </div>
+        </div>
+        <!-- email -->
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" class="form-control" value="<%= user.email || '' %>">
+        </div>
+        <!-- real name -->
+        <div class="form-group">
+          <label>Name</label>
+          <div class="row">
+            <div class="col-sm-4">
+              <input type="text" class="form-control" name="givenName" placeholder="First" value="<%= user.givenName || '' %>">
+            </div>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" name="middleName" placeholder="Middle" value="<%= user.middleName || '' %>">
+            </div>
+            <div class="col-sm-4">
+              <input type="text" class="form-control" name="familyName" placeholder="Last" value="<%= user.familyName || '' %>">
+            </div>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" name="suffixName" placeholder="Suffix" value="<%= user.suffixName || '' %>">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block ">Update</button>
+      </form>
+        
+      <hr/>
+      <div class="row">
+      	<!-- LOCAL INFORMATION -->
+        <div class="col-sm-3">
+          <% if (user.local.password) { %>
+            <a href="/unlink/local" class="btn btn-default btn-block">
+              <span class="fa fa-user"></span><span class="tw"> Unlink Local</span>
+            </a>
+          <% } else { %> 
+            <a href="/connect/local" class="btn btn-default btn-block">
+              <span class="fa fa-user"></span><span class="tw"> Connect Local</span>
+            </a>
+          <% } %>
         </div>
         <!-- END LOCAL -->
         
         <!-- FACEBOOK INFORMATION -->
-        <div class="col-sm-6">
-        	<div class="well">
-            <h3 class="text-primary"><span class="fa fa-facebook"></span> Facebook</h3>
-          <!-- check if the user has this token (is the user authenticated with this social account) -->
-				  <% if (user.facebook.token) { %>
-            <p>
-              <strong>id</strong>: <%= user.facebook.id %><br>
-              <strong>token</strong>: <%= user.facebook.token %><br>
-              <strong>email</strong>: <%= user.facebook.email %><br>
-              <strong>name</strong>: <%= user.facebook.name %>
-            </p>
-            
-            <a href="/unlink/facebook" class="btn btn-primary">Unlink</a>
-				  <% } else { %>
-            <a href="/connect/facebook" class="btn btn-primary">Connect Facebook</a>
+        <div class="col-sm-3">
+          <% if (user.facebook.token) { %>
+            <a href="/unlink/facebook" class="btn btn-primary btn-block">
+              <span class="fa fa-facebook"></span><span class="tw"> Unlink Facebook</span>
+            </a>
+          <% } else { %> 
+            <a href="/connect/facebook" class="btn btn-primary btn-block">
+              <span class="fa fa-facebook"></span><span class="tw"> Connect Facebook</span>
+            </a>
           <% } %>
-        	</div>
         </div>
         <!-- END FACEBOOK -->
         
         <!-- TWITTER INFORMATION -->
-    		<div class="col-sm-6">
-    			<div class="well">
-    				<h3 class="text-info"><span class="fa fa-twitter"></span> Twitter</h3>
-    
-    				<!-- check if the user has this token (is the user authenticated with this social account) -->
-    				<% if (user.twitter.token) { %>
-    					<p>
-    						<strong>id</strong>: <%= user.twitter.id %><br>
-    						<strong>token</strong>: <%= user.twitter.token %><br>
-    						<strong>display name</strong>: <%= user.twitter.displayName %><br>
-    						<strong>username</strong>: <%= user.twitter.username %>
-    					</p>
-    
-    					<a href="/unlink/twitter" class="btn btn-info">Unlink</a>
-    				<% } else { %>
-    					<a href="/connect/twitter" class="btn btn-info">Connect Twitter</a>
-    				<% } %>
-    			</div>
-    		</div>
+        <div class="col-sm-3">
+          <% if (user.twitter.token) { %>
+            <a href="/unlink/twitter" class="btn btn-info btn-block">
+              <span class="fa fa-twitter"></span><span class="tw"> Unlink Twitter</span>
+            </a>
+          <% } else { %> 
+            <a href="/connect/twitter" class="btn btn-info btn-block">
+              <span class="fa fa-twitter"></span><span class="tw"> Connect Twitter</span>
+            </a>
+          <% } %>
+        </div>
         <!-- END TWITTER -->
         
         <!-- GOOGLE INFORMATION -->
-        <div class="col-sm-6">
-          <div class="well">
-            <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google</h3>
-            
-            <% if (user.google.token) { %>
-              <p>
-                <strong>id</strong>: <%= user.google.id %><br>
-                <strong>token</strong>: <%= user.google.token %><br>
-                <strong>email</strong>: <%= user.google.email %><br>
-                <strong>name</strong>: <%= user.google.name %>
-              </p>
-              
-              <a href="/unlink/google" class="btn btn-danger">Unlink</a>
-            <% } else { %>
-              <a href="/connect/google" class="btn btn-danger">Connect Google</a>
-            <% } %>
-          </div>
-      	</div>
-      	<!-- END GOOGLE -->
-      	
+        <div class="col-sm-3">
+          <% if (user.google.token) { %>
+            <a href="/unlink/google" class="btn btn-danger btn-block">
+              <span class="fa fa-google-plus"></span><span class="tw"> Unlink Google</span>
+            </a>
+          <% } else { %> 
+            <a href="/connect/google" class="btn btn-danger btn-block">
+              <span class="fa fa-google-plus"></span><span class="tw"> Connect Google</span>
+            </a>
+          <% } %>
+        </div>
+        <!-- END GOOGLE -->
       </div>
     </div>
     

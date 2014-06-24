@@ -1,7 +1,8 @@
 // routes/index.js
 // Routes for the app
 
-var Link = require('./Link');
+var Link = require('./Link'),
+    gravatar = require('gravatar');
 
 module.exports = function(app, passport) {
 
@@ -22,6 +23,17 @@ function navList (activeLink, isLoggedIn) {
   }
   
   return links;
+}
+
+function updateUserField(req, field) {
+  var user = req.user,
+      userVal = user[field],
+      formVal = req.body[field];
+  
+  // If it does not match the existing value
+  if (userVal !== formVal) {
+    user[field] = formVal;
+  }
 }
 
 // =============================================================================
@@ -57,6 +69,10 @@ function navList (activeLink, isLoggedIn) {
 	app.get('/settings', isLoggedIn, function(req, res) {
 		res.render('settings.ejs', {
 			user : req.user, // get the user out of session and pass to template
+			gravatar: gravatar.url(req.user.email || '', {
+        d: 'retro',
+        r: 'x'
+			}, true),
 			links: navList('settings', true),
 			title: 'settings'
 		});
@@ -90,9 +106,9 @@ function navList (activeLink, isLoggedIn) {
 
 	// process the login form
 	app.post('/login', passport.authenticate('local-login', {
-		successRedirect : '/talk',
-		failureRedirect : '/login',
-		failureFlash : true // allow flash messages
+      successRedirect : '/talk',
+      failureRedirect : '/login',
+      failureFlash : true // allow flash messages
 	}));
 
 	// =====================================
@@ -110,12 +126,19 @@ function navList (activeLink, isLoggedIn) {
 	});
 
 	// process the signup form
+	/*
 	app.post('/signup', passport.authenticate('local-signup', {
     successRedirect : '/settings', // redirect to the secure profile section
     failureRedirect : '/signup', // redirect back to the signup page if there is an error
     failureFlash : true // allow flash messages
 	}));
-  
+  */
+	app.post('/signup', passport.authenticate('local-signup', {
+      successRedirect : '/settings',
+      failureRedirect : '/signup',
+      failureFlash : true
+	}));
+
   // =====================================
 	// FACEBOOK AUTH =======================
 	// =====================================
@@ -220,47 +243,62 @@ function navList (activeLink, isLoggedIn) {
 		}));
 
 // =============================================================================
+// UPDATE USER =================================================================
+// =============================================================================
+  app.post('/settings', isLoggedIn, function (req, res) {
+    updateUserField(req, 'email');
+    updateUserField(req, 'givenName');
+    updateUserField(req, 'middleName');
+    updateUserField(req, 'familyName');
+    updateUserField(req, 'suffix');
+    
+    req.user.save(function(err) {
+        res.redirect('/settings');
+    });
+  });
+
+// =============================================================================
 // UNLINK ACCOUNTS =============================================================
 // =============================================================================
 // used to unlink accounts. for social accounts, just remove the token
 // for local account, remove email and password
 // user account will stay active in case they want to reconnect in the future
 
-    // local -----------------------------------
-    app.get('/unlink/local', function(req, res) {
-        var user            = req.user;
-        user.local.password = undefined;
-        user.save(function(err) {
-            res.redirect('/settings');
-        });
+  // local -----------------------------------
+  app.get('/unlink/local', isLoggedIn, function(req, res) {
+    var user            = req.user;
+    user.local.password = undefined;
+    user.save(function(err) {
+        res.redirect('/settings');
     });
+  });
 
-    // facebook -------------------------------
-    app.get('/unlink/facebook', function(req, res) {
-        var user            = req.user;
-        user.facebook.token = undefined;
-        user.save(function(err) {
-            res.redirect('/settings');
-        });
+  // facebook -------------------------------
+  app.get('/unlink/facebook', isLoggedIn, function(req, res) {
+    var user            = req.user;
+    user.facebook.token = undefined;
+    user.save(function(err) {
+        res.redirect('/settings');
     });
+  });
 
-    // twitter --------------------------------
-    app.get('/unlink/twitter', function(req, res) {
-        var user           = req.user;
-        user.twitter.token = undefined;
-        user.save(function(err) {
-           res.redirect('/settings');
-        });
+  // twitter --------------------------------
+  app.get('/unlink/twitter', isLoggedIn, function(req, res) {
+    var user           = req.user;
+    user.twitter.token = undefined;
+    user.save(function(err) {
+       res.redirect('/settings');
     });
+  });
 
-    // google ---------------------------------
-    app.get('/unlink/google', function(req, res) {
-        var user          = req.user;
-        user.google.token = undefined;
-        user.save(function(err) {
-           res.redirect('/settings');
-        });
+  // google ---------------------------------
+  app.get('/unlink/google', function(req, res) {
+    var user          = req.user;
+    user.google.token = undefined;
+    user.save(function(err) {
+       res.redirect('/settings');
     });
+  });
 };
 
 // route middleware to make sure a user is logged in

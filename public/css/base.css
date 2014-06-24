@@ -31,16 +31,25 @@ hr {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 85px;
     text-align: center;
-    color: white;
+    background: rgb(250,250,250);
+    background: rgba(250,250,250,0.3);
+    color: #fff;
 }
 
-#footer a {
-  color: white;
+#footer .container {
+  padding: 10px 0;
 }
 
 #footer hr {
-    padding-top:0;
-    margin-top:0;
+    padding: 0;
+    margin: 0;
+}
+
+#footer a {
+  color: #fff;
+}
+
+@media (min-width: 768px) {
+  .body {padding-bottom: 40px;}
 }
