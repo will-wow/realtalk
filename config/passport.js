@@ -33,7 +33,8 @@ function addInfo(user, info) {
   
   for (part in info) {
     if (info.hasOwnProperty(part)) {
-      if (info[part] && !user[part]) user[part] = info[part];
+      if (info[part] && !user[part])
+        user.set(part, info[part]);
     }
   }
 }
@@ -45,8 +46,8 @@ function facebookUser(user, token, profile, username) {
   addInfo(user,{
     username: username,
     email: profile.emails[0].value,
-    givenName: profile.name.givenName,
-    familyName: profile.name.familyName
+    firstName: profile.name.givenName,
+    lastName: profile.name.familyName
   });
 }
 // Update a user w/ info
@@ -55,7 +56,7 @@ function twitterUser(user, token, profile, username) {
   // Add info to user, if it's new
   addInfo(user,{
     username:  username,
-    givenName: profile.name.displayName
+    fullName: profile.displayName
   });
 }
 function googleUser(user, token, profile, username) {
@@ -64,7 +65,7 @@ function googleUser(user, token, profile, username) {
   addInfo(user,{
     username:  username,
     email:  profile.emails[0].value,
-    givenName: profile.name.displayName,
+    fullName: profile.name.displayName,
   });
 }
 

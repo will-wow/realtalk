@@ -20,6 +20,7 @@ function navList (activeLink, isLoggedIn) {
   } else {
     links.push(new Link(activeLink, 'Home', '/'));
     links.push(new Link(activeLink, 'Login'));
+    links.push(new Link(activeLink, 'Signup'));
   }
   
   return links;
@@ -44,7 +45,6 @@ function updateUserField(req, field) {
 	// HOME PAGE (with login links) ========
 	// =====================================
 	app.get('/', function(req, res) {
-		console.log('HOME');
 		res.render('index', {
       auth: !!req.user,
       title: ''}
@@ -250,10 +250,10 @@ function updateUserField(req, field) {
   app.post('/settings', isLoggedIn, function (req, res) {
     updateUserField(req, 'username');
     updateUserField(req, 'email');
-    updateUserField(req, 'givenName');
+    updateUserField(req, 'firstName');
     updateUserField(req, 'middleName');
-    updateUserField(req, 'familyName');
-    updateUserField(req, 'suffix');
+    updateUserField(req, 'lastName');
+    updateUserField(req, 'nameSuffix');
     
     req.user.save(function(err) {
         res.redirect('/settings');
