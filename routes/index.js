@@ -44,6 +44,7 @@ function updateUserField(req, field) {
 	// HOME PAGE (with login links) ========
 	// =====================================
 	app.get('/', function(req, res) {
+		console.log('HOME');
 		res.render('index.ejs', {
       auth: !!req.user,
       title: ''}

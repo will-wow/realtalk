@@ -14,7 +14,7 @@ var express     = require('express'),
 
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
-mongoose.connection.once('open', function callback () {console.log('mg');});
+mongoose.connection.once('open', function callback () {console.log('DB connect');});
 
 
 require('./config/passport')(passport); // pass passport for configuration
