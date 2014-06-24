@@ -69,6 +69,7 @@ function updateUserField(req, field) {
 	// we will use route middleware to verify this (the isLoggedIn function)
 	app.get('/settings', isLoggedIn, function(req, res) {
 		res.render('settings.ejs', {
+      message: req.flash('settingsMessage'),
 			user : req.user, // get the user out of session and pass to template
 			gravatar: gravatar.url(req.user.email || '', {
         d: 'retro',
@@ -271,6 +272,9 @@ function updateUserField(req, field) {
     var user            = req.user;
     user.local.password = undefined;
     user.save(function(err) {
+        if (err) {
+          req.flash('settingsMessage', 'That username is already taken.');
+        }
         res.redirect('/settings');
     });
   });
