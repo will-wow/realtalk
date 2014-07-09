@@ -1,6 +1,9 @@
-node_modules/
+node_modules
+dist
+.tmp
+.sass-cache
+bower_components
 data/
 mongod
 mongoshell
 config/locals.js
-

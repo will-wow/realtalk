@@ -1,0 +1,22 @@
+<div class="container">
+  <div class="jumbotron text-center">
+    <h1>realtalk.</h1>
+    <p>real talk in real time</p>
+    
+    <!-- Authorized nav bar -->
+    <div ng-show="home.auth">
+      <a href="/talk" class="btn btn-danger"><span class="fa fa-comments-o"></span> start talking!</a>
+      <a href="/settings" class="btn btn-default"><span class="fa fa-cog"></span> settings</a>
+      <a href="/logout" class="btn btn-primary"><span class="fa fa-sign-out"></span> logout</a>
+    </div>
+    <!-- Not authorized nav bar -->
+    <div ng-hide="home.auth">
+      <a href="/login" class="btn btn-default"><span class="fa fa-sign-in"></span> login</a>
+      <a href="/signup" class="btn btn-default"><span class="fa fa-user"></span> signup</a>
+      <a href="/auth/facebook" class="btn btn-primary"><span class="fa fa-facebook"></span> facebook</a>
+      <a href="/auth/twitter" class="btn btn-info"><span class="fa fa-twitter"></span> twitter</a>
+      <a href="/auth/google" class="btn btn-danger"><span class="fa fa-google-plus"></span> google</a>
+    </div>
+
+  </div>
+</div>
