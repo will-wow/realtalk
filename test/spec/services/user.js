@@ -1,18 +1,18 @@
 'use strict';
 
-describe('Service: Services', function () {
+describe('Service: User', function () {
 
   // load the service's module
   beforeEach(module('realtalkApp'));
 
   // instantiate service
-  var Services;
-  beforeEach(inject(function (_Services_) {
-    Services = _Services_;
+  var User;
+  beforeEach(inject(function (_User_) {
+    User = _User_;
   }));
 
   it('should do something', function () {
-    expect(!!Services).toBe(true);
+    expect(!!User).toBe(true);
   });
 
 });

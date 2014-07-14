@@ -8,9 +8,26 @@
  *
  * Main module of the application.
  */
-angular
-  .module('realtalkApp', [
-    'ngRoute',
-    'realtalkApp.services',
-    //'realtalkApp.directives'
-  ]);
+angular.module('realtalkApp', [
+  'ngRoute'
+  ])
+.config(['$routeProvider', function($routeProvider) {
+  $routeProvider
+  .when('/', {
+    templateUrl: 'views/home.html',
+    controller: 'HomeCtrl',
+    controllerAs: 'home'
+  })
+  .when('/talk', {
+    templateUrl: 'views/talk.html',
+    controller: 'TalkCtrl',
+    controllerAs: 'talk'
+  })
+.when('/settings', {
+  templateUrl: 'views/settings.html',
+  controller: 'SettingsCtrl'
+})
+.otherwise({
+    redirectTo: '/'
+  });
+}]);

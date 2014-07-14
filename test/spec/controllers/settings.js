@@ -1,17 +1,17 @@
 'use strict';
 
-describe('Controller: RoutesCtrl', function () {
+describe('Controller: SettingsCtrl', function () {
 
   // load the controller's module
   beforeEach(module('realtalkApp'));
 
-  var RoutesCtrl,
+  var SettingsCtrl,
     scope;
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope) {
     scope = $rootScope.$new();
-    RoutesCtrl = $controller('RoutesCtrl', {
+    SettingsCtrl = $controller('SettingsCtrl', {
       $scope: scope
     });
   }));
