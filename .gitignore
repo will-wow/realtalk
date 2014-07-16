@@ -7,3 +7,4 @@ data/
 mongod
 mongoshell
 config/locals.js
+.c9

@@ -1,3 +1,11 @@
+// bower:scss
+@import "bootstrap-sass-official/assets/stylesheets/bootstrap.scss";
+// endbower
+
+$fa-font-path: "/styles/fonts";
+@import "font-awesome/scss/font-awesome.scss";
+
+
 html {
     min-height: 100%;
     position: relative;
