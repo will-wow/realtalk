@@ -1,6 +1,6 @@
 {
   "name": "realtalk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "start": "node app.js",
@@ -8,16 +8,14 @@
   },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
-    "connect-flash": "0.1.1",
-    "express": "3.5.1",
-    "ejs": "1.0.0",
-    "gravatar": "1.0.6",
+    "body-parser": "^1.0.2",
+    "cookie-parser": "^1.0.1",
+    "express": "4.6.1",
+    "express-session": "^1.0.4",
     "mongoose": "3.8.12",
+    "morgan": "^1.0.1",
     "passport": "0.2.0",
-    "passport-local": "1.0.0",
-    "passport-facebook": "1.0.3",
-    "passport-twitter": "1.0.2",
-    "passport-google-oauth": "0.1.5",
+    "passport-http": "^0.2.2",
     "passport.socketio": "3.2.0",
     "socket.io": "1.0.6"
   },
@@ -26,6 +24,7 @@
     "grunt-autoprefixer": "^0.7.3",
     "grunt-concurrent": "^0.5.0",
     "grunt-contrib-clean": "^0.5.0",
+    "grunt-contrib-compass": "^0.7.2",
     "grunt-contrib-concat": "^0.4.0",
     "grunt-contrib-connect": "^0.7.1",
     "grunt-contrib-copy": "^0.5.0",

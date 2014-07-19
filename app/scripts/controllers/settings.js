@@ -7,11 +7,12 @@
  * # SettingsCtrl
  * Controller of the realtalkApp
  */
-angular.module('realtalkApp')
-  .controller('SettingsCtrl', function ($scope) {
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate',
-      'AngularJS',
-      'Karma'
-    ];
-  });
+angular.module('realtalkApp').controller('SettingsCtrl', ['Me', function(Me) {
+    var scope = this;
+
+    scope.user = Me.query();
+
+    scope.save = function() {
+        Me.$save();
+    };
+}]);

@@ -8,6 +8,6 @@
  * Get info about other users
  */
 angular.module('realtalkApp')
-  .factory('Users', function Users() {
-    // AngularJS will instantiate a singleton by calling "new" on this function
-  });
+  .factory('Users', ['$resource', function ($resource) {
+    return $resource('/api/users/:users');
+  }]);

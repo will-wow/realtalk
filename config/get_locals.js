@@ -19,7 +19,9 @@ if (locals) {
     URLS: {
       MONGO: process.env.MONGO_URL,
       AUTH: process.env.AUTH_URL
-    },
+    }
+    
+    /*,
     FACEBOOK: {
       ID: process.env.FACEBOOK_ID,
       SECRET: process.env.FACEBOOK_SECRET
@@ -32,6 +34,7 @@ if (locals) {
       ID: process.env.TWITTER_ID,
       SECRET: process.env.TWITTER_SECRET
     }
+  */
   };
 }
 

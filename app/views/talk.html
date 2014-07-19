@@ -1,1 +1,55 @@
-<p>This is the talk view.</p>
+<div class="talk">
+    <nav></nav>
+    
+    <div class="container chatcontainer">
+        <div class="row">
+            <!-- Message Section -->
+            <div class="animate col-md-4 col-md-offset-1 col-sm-10 col-xs-12 col-sm-offset-1 zero-width"
+            id="message">
+                <form role="form">
+                    <h3 id="event-header"></h3>
+                    <div class="row event-btns">
+                        <div class="col-sm-6">
+                            <input type="button" class="btn btn-block btn-success" id="event-yes"
+                            value="" />
+                        </div>
+                        <div class="col-sm-6">
+                            <input type="button" class="btn btn-block btn-danger" id="event-no" value=""
+                            />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Chat Section -->
+            <div class="animate col-md-6 col-md-offset-3 col-sm-10 col-xs-12 col-sm-offset-1 zero-width"
+            id="chat">
+                <div class="chatside form-group">
+                    <label class="chathead" for="other" id="head-other">OtherUser</label>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-user"></span>
+                        </span>
+                        <input type="text" class="form-control chatbox" id="other" readonly>
+                    </div>
+                </div>
+                <div class="chatside form-group">
+                    <label for="me" class="chathead" id="head-me">
+                        <%=u sername %>
+                    </label>
+                    <div class="input-group">
+                        <input type="text" class="form-control chatbox" id="me" readonly>
+                        <span class="input-group-addon">Me</span>
+                    </div>
+                </div>
+                <div>
+                    <input type="button" class="btn btn-block btn-danger" id="quit" value="Quit Chat"
+                    />
+                </div>
+            </div>
+            <!-- Empty Section -->
+            <div class="animate col-xs-12" id="empty">
+                <h3>Select a user to talk with from the User Chooser menu</h3>
+            </div>
+        </div>
+    </div>
+</div>

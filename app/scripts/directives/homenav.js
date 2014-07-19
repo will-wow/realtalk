@@ -6,22 +6,14 @@
  * @description
  * # nav
  */
- /*
-angular.module('realtalkApp.directives')
-  .directive('homenav', ['services', function (services) {
+angular.module('realtalkApp')
+  .directive('homenav', ['Auth', function (Auth) {
     return {
       templateUrl: 'views/templates/homenav.html',
       restrict: 'E',
       controller: function () {
-        // Real nav data
-        //var nav = services.nav().success()....;
-        
-        // Fake Nav data
-        var auth = true;
-        
-        this.auth = auth;
+        this.auth = Auth.isSignedIn();
       },
-      controllerAs: 'home'
+      controllerAs: 'nav'
     };
   }]);
-*/

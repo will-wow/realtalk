@@ -11,9 +11,6 @@
     
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(.) styles/vendor.css -->
-    <!-- bower:css -->
-    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
-    <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
@@ -46,6 +43,9 @@
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-gravatar/build/md5.js"></script>
+    <script src="bower_components/angular-gravatar/build/angular-gravatar.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     
@@ -53,15 +53,20 @@
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/home.js"></script>
     <script src="scripts/controllers/talk.js"></script>
+    <script src="scripts/controllers/settings.js"></script>
+    <script src="scripts/controllers/signin.js"></script>
+    <script src="scripts/controllers/signup.js"></script>
     <script src="scripts/directives/nav.js"></script>
+    <script src="scripts/directives/homenav.js"></script>
     <script src="scripts/directives/footer.js"></script>
-    <script src="scripts/services/services.js"></script>
-    <script src="scripts/controllers/routes.js"></script>
-    <script src="scripts/services/user.js"></script>
     <script src="scripts/services/users.js"></script>
     <script src="scripts/services/socket.js"></script>
-    <script src="scripts/controllers/settings.js"></script>
-    <script src="scripts/services/isloggedin.js"></script>
+    <script src="scripts/services/session.js"></script>
+    <script src="scripts/services/contacts.js"></script>
+    <script src="scripts/services/me.js"></script>
+    <script src="scripts/services/new.js"></script>
+    <script src="scripts/services/auth.js"></script>
+    <script src="scripts/services/signin.js"></script>
     <!-- endbuild -->
 </body>
 </html>

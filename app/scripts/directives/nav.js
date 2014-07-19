@@ -8,12 +8,12 @@
  */
  
 angular.module('realtalkApp')
-  .directive('nav', ['isLoggedIn', function (isLoggedIn) {
+  .directive('nav', ['Auth', function (Auth) {
     return {
       templateUrl: 'views/templates/nav.html',
       restrict: 'E',
       controller: function () {
-        this.auth = isLoggedIn();
+        this.auth = Auth.isSignedIn();
       },
       controllerAs: 'nav'
     };

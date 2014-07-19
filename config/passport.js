@@ -1,17 +1,9 @@
 // config/passport.js
 
 // load all the things we need
-var LocalStrategy = require('passport-local').Strategy;
-var FacebookStrategy = require('passport-facebook').Strategy;
-var TwitterStrategy = require('passport-twitter').Strategy;
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-
-// load up the user model
-var User = require('../lib/models/user');
-
-// load the auth variables
-var configAuth = require('./auth');
-
+var BasicStrategy = require('passport-http').BasicStrategy,
+    User = require('../lib/models/user');
+    //configAuth = require('./auth');
 
 /**
  * Check if a string is an email
@@ -38,6 +30,50 @@ function addInfo(user, info) {
     }
   }
 }
+
+// expose this function to our app using module.exports
+module.exports = function(passport) {
+  // set up BasicStrategy
+  passport.use(new BasicStrategy(
+
+  function(username, password, callback) {
+    User.findOne({
+      username: username
+    }, function(err, user) {
+      if (err) {
+        return callback(err);
+      }
+
+      // No user found with that username
+      if (!user) {
+        return callback(null, false);
+      }
+
+      // Make sure the password is correct
+      user.verifyPassword(password, function(err, isMatch) {
+        if (err) {
+          return callback(err);
+        }
+
+        // Password did not match
+        if (!isMatch) {
+          return callback(null, false);
+        }
+
+        // Success
+        return callback(null, user);
+      });
+    });
+  }));
+};
+
+
+/*
+OTHER STRATEGY FUNCTIONS (turned off for REST)
+var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
+var TwitterStrategy = require('passport-twitter').Strategy;
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 // Update a user w/ FB info
 function facebookUser(user, token, profile, username) {
@@ -74,7 +110,6 @@ function googleUser(user, token, profile, username) {
  * @param: {String} username - given name
  * @param: {String} callback - callback to pass the name to
  * @param: {String || integer} n - Number to append to name. Start with ''
- */
 function uniqueName(username, callback, n) {
   // Set an undefined n to blank
   if (!n) n='';
@@ -101,9 +136,6 @@ function uniqueName(username, callback, n) {
   });
 }
 
-// expose this function to our app using module.exports
-module.exports = function(passport) {
-
   // =========================================================================
   // passport session setup ==================================================
   // =========================================================================
@@ -121,8 +153,8 @@ module.exports = function(passport) {
       done(err, user);
     });
   });
-  
-  // =========================================================================
+
+// =========================================================================
   // LOCAL SIGNUP ============================================================
   // =========================================================================
   passport.use('local-signup', new LocalStrategy({
@@ -448,4 +480,5 @@ module.exports = function(passport) {
       }
     });
   }));
-};
+
+*/
