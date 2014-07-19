@@ -36,6 +36,13 @@ app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(express.static(path.join(__dirname, 'app')));
 
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  next();
+ });
+
 // routes ======================================================================
 // load routes and pass in app and fully configured passport
 require('./routes')(app, passport); 
