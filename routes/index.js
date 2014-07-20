@@ -26,7 +26,7 @@ module.exports = function(app, passport) {
   // Send true if authenticated
   router.route('/signin')
     .get(isAuthenticated, function(req, res) {
-      res.send(true);
+      res.json({'success': true});
     });
   
   router.route('/new')
@@ -41,11 +41,11 @@ module.exports = function(app, passport) {
     .delete(isAuthenticated, userController.deleteMe);
   
   router.route('/contacts')
-    .delete(isAuthenticated, userController.deleteContacts);
+    .delete(isAuthenticated, userController.deleteContacts)
+    .post(isAuthenticated, userController.addContact);
     
   router.route('/contacts/:contacts?')
     .get(isAuthenticated, userController.getContacts)
-    .post(isAuthenticated, userController.addContact)
     .delete(isAuthenticated, userController.deleteContact);
   
   router.route('/users/:users?')
