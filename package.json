@@ -20,9 +20,6 @@
     "socket.io": "1.0.6"
   },
   "subdomain": "realtalk",
-  "domains": [
-    "realtalk.whentheresawill.net"
-  ],
   "engines": {
     "node": "0.10.x"
   }
