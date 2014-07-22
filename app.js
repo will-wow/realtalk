@@ -1,6 +1,5 @@
 var express     = require('express'),
     http        = require('http'),
-    path        = require('path'),
     session      = require('express-session'),
     sessionStore = new session.MemoryStore(),
     app         = express(),
@@ -34,7 +33,6 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
-app.use(express.static(path.join(__dirname, 'app')));
 
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -47,9 +45,9 @@ app.all('*', function(req, res, next) {
 // load routes and pass in app and fully configured passport
 require('./routes')(app, passport); 
 
-// Spin up http server =========================================================
+// Start up http server =========================================================
 var server = http.createServer(app).listen(app.get('port'), function() {
-    console.log('WebTalk is listening on port ' + app.get('port'));
+    console.log('realtalk. is listening on port ' + app.get('port'));
 });
 // Start up socket server ======================================================
 var chatServer = require('./lib/chat_server');
