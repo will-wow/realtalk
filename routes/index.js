@@ -13,13 +13,6 @@ module.exports = function(app, passport) {
   // export the isAuthenticaed function
   isAuthenticated = passport.authenticate('basic', { session : false });
   
-	// =====================================
-	// HOME PAGE (with login links) ========
-	// =====================================
-	app.get('/', function(req, res) {
-		res.render('index');
-	});
-  
 // =============================================================================
 // RESTful ROUTES ==============================================================
 // =============================================================================
