@@ -1,9 +1,9 @@
-realtalk. (RESTful API)
+realtalk. (Angular front-end)
 =====
 real talk in real time.
 
-This is the repositiory for the realtalk. backend. For the Angular front-end,
-see [realtalk-front](https://github.com/whenther/realtalk-front).  
+This is the repositiory for the realtalk. front-end. For the Node.js back-end,
+see [realtalk](https://github.com/whenther/realtalk).  
 
 
 real immediate
@@ -36,9 +36,9 @@ notifications. Since you're typing in real-time, autocorrect is disabled,
 so you've got nobody to blame but Freud when you "mistype" something.
 
 
-For a complete description, check out the app online or in the Google Play store.
-
 links
 ------
+For a complete description, or to try out some realtalk,
+check out the app online or in the Google Play store.  
 [Web Version](http://realtalk.whentheresawill.net)  
-[Android App](https://play.google.com/apps/publish/?dev_acc=09843787097809109396#MarketListingPlace:p=net.whentheresawill.realtalk)  
+[Android App](https://play.google.com/store/apps/details?id=net.whentheresawill.realtalk)  
