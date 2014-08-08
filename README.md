@@ -3,7 +3,7 @@ realtalk. (Node.js backend)
 real talk in real time.
 
 This is the repositiory for the backend. For an Angular frontend,
-see [realtalk](https://github.com/whenther/realtalk-front).  
+see [realtalk-front](https://github.com/whenther/realtalk-front).  
 
 
 real immediate
