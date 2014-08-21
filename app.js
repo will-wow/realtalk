@@ -1,29 +1,29 @@
 var express     = require('express'),
     http        = require('http'),
-    session      = require('express-session'),
-    sessionStore = new session.MemoryStore(),
-    app         = express(),
+    session     = require('express-session'),
     mongoose    = require('mongoose'),
     passport    = require('passport'),
     locals      = require('./config/get_locals'),
+    morgan      = require('morgan'),
+    cookieParser= require('cookie-parser'),
+    bodyParser  = require('body-parser'),
+    
+    sessionStore= new session.MemoryStore(),
+    app         = express(),
     configDB    = locals.URLS.MONGO,
     key         = locals.COOKIES.KEY,
-    secret      = locals.COOKIES.SECRET,
+    secret      = locals.COOKIES.SECRET;
     
-    morgan       = require('morgan'),
-    cookieParser = require('cookie-parser'),
-    bodyParser   = require('body-parser');
-
-
 // configuration ===============================================================
 mongoose.connect(configDB); // connect to our database
-mongoose.connection.once('open', function callback () {console.log('DB connect');});
+mongoose.connection.once('open', function callback () {
+  console.log('DB connect');
+});
 
 require('./config/passport')(passport); // pass passport for configuration
 
 // all environments
 app.set('port', process.env.PORT || 8080);
-app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser(secret));
@@ -33,6 +33,11 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
+
+// Development
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
